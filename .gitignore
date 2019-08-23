@@ -6,3 +6,6 @@ build
 
 # misc
 .DS_Store
+
+# go binary
+main

@@ -6,3 +6,6 @@ services:
     image: kru.travel/client.web:latest
     ports:
       - "8000:80"
+  service.user:
+    build: backend/service.user
+    image: kru.travel/service.user:latest
