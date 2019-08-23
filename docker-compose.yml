@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  client.web:
+    build: frontend/client.web
+    image: kru.travel/client.web:latest
+    ports:
+      - "8000:80"
