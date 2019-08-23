@@ -1,13 +1,29 @@
 version: 2
 jobs:
-  build:
+  client.web:
     docker:
-      - image: debian:stretch
+      - image: circleci/node:10.16-stretch
+    working_directory: ~/kru.travel/frontend/client.web
     steps:
-      - checkout
+      - checkout:
+          path: ~/kru.travel
+      - restore_cache:
+          key: client.web-cache-{{ checksum "package.json" }}
       - run:
-          name: Greeting
-          command: echo Hello, world.
+          name: install
+          command: npm install
+      - save_cache:
+          key: client.web-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
       - run:
-          name: Print the Current Time
-          command: date
+          name: test
+          command: npm test
+      - run:
+          name: build
+          command: npm run build
+workflows:
+  version: 2
+  kru.travel:
+    jobs:
+      - client.web
