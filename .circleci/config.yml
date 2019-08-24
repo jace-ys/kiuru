@@ -3,10 +3,10 @@ jobs:
   client.web:
     docker:
       - image: circleci/node:10.16-stretch
-    working_directory: ~/kru.travel/frontend/client.web
+    working_directory: ~/kru-travel/frontend/client.web
     steps:
       - checkout:
-          path: ~/kru.travel
+          path: ~/kru-travel
       - restore_cache:
           key: client.web-cache-{{ checksum "package.json" }}
       - run:
@@ -26,11 +26,11 @@ jobs:
   service.user:
     docker:
       - image: circleci/golang:1.12
-    working_directory: ~/kru.travel/backend/service.user
+    working_directory: ~/kru-travel/backend/service.user
     steps:
       - checkout:
-          path: ~/kru.travel
-      - run: ~/kru.travel/.circleci/setup.sh
+          path: ~/kru-travel
+      - run: ~/kru-travel/.circleci/setup.sh
       - restore_cache:
           key: service.user-cache-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - run:
@@ -56,7 +56,7 @@ jobs:
             - /go/pkg/mod
 workflows:
   version: 2
-  kru.travel:
+  kru-travel:
     jobs:
       - client.web
       - service.user
