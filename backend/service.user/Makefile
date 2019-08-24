@@ -1,7 +1,8 @@
 TARGET = main
 SOURCE = main.go
+PROTO_TARGETS = user
 
-.PHONY: all build run test format clean
+.PHONY: all build run test format clean proto
 
 all: format build run
 
@@ -25,3 +26,6 @@ clean:
 	@echo "==> Cleaning up.."
 	go mod tidy
 	go clean
+
+proto:
+	../../bin/protogen.sh -l go -t ${PROTO_TARGETS} -p ../../api/proto

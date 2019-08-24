@@ -22,6 +22,7 @@ jobs:
       - run:
           name: build
           command: npm run build
+
   service.user:
     docker:
       - image: circleci/golang:1.12
@@ -29,6 +30,7 @@ jobs:
     steps:
       - checkout:
           path: ~/kru.travel
+      - run: ~/kru.travel/.circleci/setup.sh
       - restore_cache:
           key: service.user-cache-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - run:
@@ -38,6 +40,14 @@ jobs:
           name: lint
           command: |
             if [ -n "$(gofmt -l .)" ]; then
+              exit 1
+            fi
+      - run:
+          name: verify proto
+          command: |
+            make proto
+            if [ $(git diff | wc -l) -gt 0 ]; then
+              echo "Generated code not up to date with proto schema"
               exit 1
             fi
       - save_cache:
