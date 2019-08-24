@@ -12,16 +12,19 @@ jobs:
       - run:
           name: install
           command: npm install
-      - save_cache:
-          key: client.web-cache-{{ checksum "package.json" }}
-          paths:
-            - ./node_modules
+      - run:
+          name: lint
+          command: npm run lint
       - run:
           name: test
           command: npm test
       - run:
           name: build
           command: npm run build
+      - save_cache:
+          key: client.web-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
 
   service.user:
     docker:
