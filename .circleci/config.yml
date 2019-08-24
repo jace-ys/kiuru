@@ -30,7 +30,7 @@ jobs:
     steps:
       - checkout:
           path: ~/kru-travel
-      - run: ~/kru-travel/.circleci/setup.sh
+      - run: ~/kru-travel/.circleci/setup.sh go
       - restore_cache:
           key: service.user-cache-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - run:
@@ -50,6 +50,9 @@ jobs:
               echo "Generated code not up to date with proto schema"
               exit 1
             fi
+      - run:
+          name: test
+          command: make test
       - save_cache:
           key: service.user-cache-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
