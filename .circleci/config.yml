@@ -8,7 +8,7 @@ jobs:
       - checkout:
           path: ~/kru-travel
       - restore_cache:
-          key: client.web-cache-{{ checksum "package.json" }}
+          key: client.web-cache-{{ checksum "package-lock.json" }}
       - run:
           name: install
           command: npm install
@@ -22,7 +22,7 @@ jobs:
           name: build
           command: npm run build
       - save_cache:
-          key: client.web-cache-{{ checksum "package.json" }}
+          key: client.web-cache-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules
 
@@ -60,6 +60,7 @@ jobs:
           key: service.user-cache-{{ checksum "go.sum" }}
           paths:
             - /go/pkg/mod
+
 workflows:
   version: 2
   kru-travel:

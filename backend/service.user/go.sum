@@ -17,8 +17,8 @@ github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5y
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 h1:T+h1c/A9Gawja4Y9mFVWj2vyii2bbUNDw3kt9VxK2EY=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
-github.com/kru-travel/airdrop-go v0.0.0-20190827000825-76496f4b17b4 h1:46qEUT5F8BPXRMpjwBsrc+Hwnt18c1f9z2GZfezAL4M=
-github.com/kru-travel/airdrop-go v0.0.0-20190827000825-76496f4b17b4/go.mod h1:WPgf3S6AQFjYK2JkKOgFYLVXdUhn6Qk5Sq5PaRTSEUo=
+github.com/kru-travel/airdrop-go v0.0.0-20190827205802-beaf6cfa222b h1:E5qdfwg2iC9I9YPcNgFm/pi1u5q5ZaoizKA+40gwgw4=
+github.com/kru-travel/airdrop-go v0.0.0-20190827205802-beaf6cfa222b/go.mod h1:WPgf3S6AQFjYK2JkKOgFYLVXdUhn6Qk5Sq5PaRTSEUo=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
