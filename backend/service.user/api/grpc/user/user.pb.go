@@ -3,13 +3,14 @@
 
 package user
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
-	context "golang.org/x/net/context"
+	context "context"
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -21,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type GetUserRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -35,16 +36,17 @@ func (m *GetUserRequest) Reset()         { *m = GetUserRequest{} }
 func (m *GetUserRequest) String() string { return proto.CompactTextString(m) }
 func (*GetUserRequest) ProtoMessage()    {}
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_user_01fdd40b6e890ea3, []int{0}
+	return fileDescriptor_116e343673f7ffaf, []int{0}
 }
+
 func (m *GetUserRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetUserRequest.Unmarshal(m, b)
 }
 func (m *GetUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetUserRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetUserRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetUserRequest.Merge(dst, src)
+func (m *GetUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUserRequest.Merge(m, src)
 }
 func (m *GetUserRequest) XXX_Size() int {
 	return xxx_messageInfo_GetUserRequest.Size(m)
@@ -81,16 +83,17 @@ func (m *GetUserResponse) Reset()         { *m = GetUserResponse{} }
 func (m *GetUserResponse) String() string { return proto.CompactTextString(m) }
 func (*GetUserResponse) ProtoMessage()    {}
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_user_01fdd40b6e890ea3, []int{1}
+	return fileDescriptor_116e343673f7ffaf, []int{1}
 }
+
 func (m *GetUserResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetUserResponse.Unmarshal(m, b)
 }
 func (m *GetUserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetUserResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetUserResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetUserResponse.Merge(dst, src)
+func (m *GetUserResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUserResponse.Merge(m, src)
 }
 func (m *GetUserResponse) XXX_Size() int {
 	return xxx_messageInfo_GetUserResponse.Size(m)
@@ -118,6 +121,21 @@ func (m *GetUserResponse) GetName() string {
 func init() {
 	proto.RegisterType((*GetUserRequest)(nil), "user.GetUserRequest")
 	proto.RegisterType((*GetUserResponse)(nil), "user.GetUserResponse")
+}
+
+func init() { proto.RegisterFile("user.proto", fileDescriptor_116e343673f7ffaf) }
+
+var fileDescriptor_116e343673f7ffaf = []byte{
+	// 142 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2a, 0x2d, 0x4e, 0x2d,
+	0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x01, 0xb1, 0x95, 0x4c, 0xb8, 0xf8, 0xdc, 0x53,
+	0x4b, 0x42, 0x8b, 0x53, 0x8b, 0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x84, 0xf8, 0xb8, 0x98,
+	0x32, 0x53, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0x98, 0x32, 0x53, 0x84, 0x84, 0xb8, 0x58,
+	0xf2, 0x12, 0x73, 0x53, 0x25, 0x98, 0xc0, 0x22, 0x60, 0xb6, 0x92, 0x29, 0x17, 0x3f, 0x5c, 0x57,
+	0x71, 0x41, 0x7e, 0x5e, 0x71, 0x2a, 0x31, 0xda, 0x8c, 0xdc, 0xb9, 0xb8, 0x41, 0x7a, 0x82, 0x53,
+	0x8b, 0xca, 0x32, 0x93, 0x53, 0x85, 0x2c, 0xb8, 0xd8, 0xa1, 0xa6, 0x08, 0x89, 0xe8, 0x81, 0x5d,
+	0x86, 0xea, 0x14, 0x29, 0x51, 0x34, 0x51, 0x88, 0x55, 0x4a, 0x0c, 0x49, 0x6c, 0x60, 0x2f, 0x18,
+	0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x82, 0xb2, 0x6e, 0x41, 0xd0, 0x00, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -157,6 +175,14 @@ type UserServiceServer interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 }
 
+// UnimplementedUserServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedUserServiceServer struct {
+}
+
+func (*UnimplementedUserServiceServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+
 func RegisterUserServiceServer(s *grpc.Server, srv UserServiceServer) {
 	s.RegisterService(&_UserService_serviceDesc, srv)
 }
@@ -190,19 +216,4 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "user.proto",
-}
-
-func init() { proto.RegisterFile("user.proto", fileDescriptor_user_01fdd40b6e890ea3) }
-
-var fileDescriptor_user_01fdd40b6e890ea3 = []byte{
-	// 142 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2a, 0x2d, 0x4e, 0x2d,
-	0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x01, 0xb1, 0x95, 0x4c, 0xb8, 0xf8, 0xdc, 0x53,
-	0x4b, 0x42, 0x8b, 0x53, 0x8b, 0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x84, 0xf8, 0xb8, 0x98,
-	0x32, 0x53, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0x98, 0x32, 0x53, 0x84, 0x84, 0xb8, 0x58,
-	0xf2, 0x12, 0x73, 0x53, 0x25, 0x98, 0xc0, 0x22, 0x60, 0xb6, 0x92, 0x29, 0x17, 0x3f, 0x5c, 0x57,
-	0x71, 0x41, 0x7e, 0x5e, 0x71, 0x2a, 0x31, 0xda, 0x8c, 0xdc, 0xb9, 0xb8, 0x41, 0x7a, 0x82, 0x53,
-	0x8b, 0xca, 0x32, 0x93, 0x53, 0x85, 0x2c, 0xb8, 0xd8, 0xa1, 0xa6, 0x08, 0x89, 0xe8, 0x81, 0x5d,
-	0x86, 0xea, 0x14, 0x29, 0x51, 0x34, 0x51, 0x88, 0x55, 0x4a, 0x0c, 0x49, 0x6c, 0x60, 0x2f, 0x18,
-	0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x82, 0xb2, 0x6e, 0x41, 0xd0, 0x00, 0x00, 0x00,
 }

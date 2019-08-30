@@ -25,7 +25,7 @@ fi
 
 IFS=','
 read -ra ADDR <<< "$TARGETS"
-mkdir -p api/grpc
 for target in "${ADDR[@]}"; do
-  protoc --proto_path=${PROTOPATH} --${LANG}_out=plugins=grpc:api/grpc ${PROTOPATH}/${target}.proto
+  mkdir -p api/grpc/${target}
+  protoc --proto_path=${PROTOPATH} --${LANG}_out=plugins=grpc:api/grpc/${target} ${PROTOPATH}/${target}.proto
 done

@@ -2,7 +2,7 @@ TARGET = main
 SOURCE = main.go
 PROTO_TARGETS = user
 
-.PHONY: all build run test format clean proto
+.PHONY: all build run test format update clean proto
 
 all: format build run
 
@@ -12,7 +12,7 @@ build:
 
 run:
 	@echo "==> Executing binary.."
-	@./${TARGET}
+	@./serve.sh
 
 test:
 	@echo "==> Running tests.."
@@ -22,9 +22,13 @@ format:
 	@echo "==> Formatting code.."
 	gofmt -w .
 
+update:
+	@echo "==> Updating dependancies.."
+	go get -u
+	go mod tidy
+
 clean:
 	@echo "==> Cleaning up.."
-	go mod tidy
 	go clean
 
 proto:

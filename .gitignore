@@ -7,5 +7,5 @@ build
 # misc
 .DS_Store
 
-# go binary
+# go binaries
 main
