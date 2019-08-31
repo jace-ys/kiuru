@@ -29,10 +29,13 @@ func NewCmd() *cobra.Command {
 	var c config
 
 	rootCmd := &cobra.Command{
-		Use:   "server",
-		Short: "Start the server for the service",
+		Use:   "service",
+		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
-			userService := user.NewService()
+			userService, err := user.NewService()
+			if err != nil {
+				exit(err)
+			}
 			grpcServer := server.NewGrpcServer()
 			gatewayProxy := server.NewGatewayProxy(c.server.host, c.server.port)
 
@@ -50,8 +53,7 @@ func NewCmd() *cobra.Command {
 
 			select {
 			case err := <-errChan:
-				slogger.Error().Log("event", "service.error", "msg", err.Error())
-				os.Exit(1)
+				exit(err)
 			case <-ctx.Done():
 			}
 		},
@@ -62,4 +64,9 @@ func NewCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&c.server.host, "host", "localhost", "host for the gRPC server")
 
 	return rootCmd
+}
+
+func exit(err error) {
+	slogger.Error().Log("event", "service.fatal", "msg", err)
+	os.Exit(1)
 }

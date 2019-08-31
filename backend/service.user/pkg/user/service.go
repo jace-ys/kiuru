@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
+	"github.com/pkg/errors"
 
 	"github.com/jace-ys/kru-travel/backend/service.user/pkg/server"
 
@@ -13,8 +14,16 @@ import (
 type userService struct {
 }
 
-func NewService() *userService {
-	return &userService{}
+func NewService() (*userService, error) {
+	u := &userService{}
+	if err := u.Init(); err != nil {
+		return nil, errors.Wrap(err, "service init")
+	}
+	return u, nil
+}
+
+func (u *userService) Init() error {
+	return nil
 }
 
 func (u *userService) ListenAndServe(ctx context.Context, s server.Server, port int) error {

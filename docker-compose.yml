@@ -5,9 +5,9 @@ services:
     build: frontend/client.web
     image: kru-travel/client.web:latest
     ports:
-      - "8000:80"
+      - "5000:80"
   service.user:
     build: backend/service.user
     image: kru-travel/service.user:latest
     ports:
-      - "8001:8081"
+      - "5001:8081"
