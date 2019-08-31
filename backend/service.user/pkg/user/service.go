@@ -2,50 +2,27 @@ package user
 
 import (
 	"context"
-	"net"
-	"net/http"
-
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"google.golang.org/grpc"
 
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
+
+	"github.com/jace-ys/kru-travel/backend/service.user/pkg/server"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
 
 type userService struct {
-	grpcServer *grpc.Server
 }
 
 func NewService() *userService {
-	opts := []grpc.ServerOption{}
-	return &userService{grpc.NewServer(opts...)}
+	return &userService{}
 }
 
-func (s *userService) Init() error {
-	pb.RegisterUserServiceServer(s.grpcServer, s)
-	return nil
-}
-
-func (s *userService) Serve(lis net.Listener) error {
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, ":8080", opts)
-	if err != nil {
+func (u *userService) ListenAndServe(ctx context.Context, s server.Server, port int) error {
+	if err := s.Init(u); err != nil {
 		return err
 	}
-
-	go http.ListenAndServe(":8081", mux)
-
-	return s.grpcServer.Serve(lis)
-}
-
-func (s *userService) Shutdown() {
-	s.grpcServer.Stop()
+	defer s.Shutdown(ctx)
+	return s.Serve(ctx, port)
 }
 
 func (s *userService) GetUser(ctx context.Context, r *pb.GetUserRequest) (*pb.GetUserResponse, error) {

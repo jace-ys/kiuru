@@ -9,3 +9,5 @@ services:
   service.user:
     build: backend/service.user
     image: kru-travel/service.user:latest
+    ports:
+      - "8001:8081"

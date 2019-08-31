@@ -8,5 +8,6 @@ rm protoc-$PROTOC_VERSION-linux-x86_64.zip
 case "$1" in
   go )
     GO111MODULE=off go get github.com/golang/protobuf/protoc-gen-go
+    GO111MODULE=off go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
     ;;
 esac
