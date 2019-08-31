@@ -3,15 +3,17 @@ package cmd
 import (
 	"os"
 
-	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"github.com/spf13/cobra"
+
+	"github.com/kru-travel/airdrop-go/pkg/slogger"
 
 	"github.com/jace-ys/kru-travel/backend/service.user/pkg/server"
 	"github.com/jace-ys/kru-travel/backend/service.user/pkg/user"
 )
 
 type serviceConfig struct {
-	serverPort int
+	serverPort  int
+	gatewayPort int
 }
 
 func NewCmd() *cobra.Command {
@@ -29,7 +31,8 @@ func NewCmd() *cobra.Command {
 		},
 	}
 
-	rootCmd.PersistentFlags().IntVar(&config.serverPort, "port", 8080, "Binding port for the server")
+	rootCmd.PersistentFlags().IntVar(&config.serverPort, "port", 8080, "binding port for the gRPC server")
+	rootCmd.PersistentFlags().IntVar(&config.gatewayPort, "gateway-port", 8081, "binding port for the REST gateway proxy")
 
 	return rootCmd
 }

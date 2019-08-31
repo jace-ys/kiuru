@@ -3,8 +3,10 @@
 LANG=""
 PROTOPATH=""
 TARGETS=""
+GATEWAY=false
+GOPATH=$(go env GOPATH)
 
-while getopts "l:p:t:" opt; do
+while getopts "l:p:t:g" opt; do
   case $opt in
     l )
       LANG=$OPTARG
@@ -14,6 +16,9 @@ while getopts "l:p:t:" opt; do
       ;;
     t )
       TARGETS=$OPTARG
+      ;;
+    g )
+      GATEWAY=true
       ;;
   esac
 done
@@ -26,6 +31,21 @@ fi
 IFS=','
 read -ra ADDR <<< "$TARGETS"
 for target in "${ADDR[@]}"; do
-  mkdir -p api/grpc/${target}
-  protoc --proto_path=${PROTOPATH} --${LANG}_out=plugins=grpc:api/grpc/${target} ${PROTOPATH}/${target}.proto
+  mkdir -p api/${target}
+  protoc \
+    -I${PROTOPATH} \
+    -I${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+    --${LANG}_out=plugins=grpc:api/${target} \
+    ${PROTOPATH}/${target}.proto
+  echo "==> Generated gRPC stub from ${target}.proto"
+
+  if ${GATEWAY}; then
+    protoc \
+      -I/usr/local/include \
+      -I${PROTOPATH} \
+      -I${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+      --grpc-gateway_out=logtostderr=true:api/${target} \
+      ${PROTOPATH}/${target}.proto
+      echo "==> Generated gateway stub from ${target}.proto"
+  fi
 done

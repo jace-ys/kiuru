@@ -1,6 +1,5 @@
 TARGET = main
 SOURCE = main.go
-PROTO_TARGETS = user
 
 .PHONY: all build run test format update clean proto
 
@@ -32,4 +31,4 @@ clean:
 	go clean
 
 proto:
-	../../bin/protogen.sh -l go -t ${PROTO_TARGETS} -p ../../api/proto
+	../../bin/protogen.sh -l go -t user -p ../../api/proto -g
