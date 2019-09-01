@@ -22,12 +22,12 @@ func NewGrpcServer() *grpcServer {
 	}
 }
 
-func (g *grpcServer) Init(s pb.UserServiceServer) error {
+func (g *grpcServer) Init(ctx context.Context, s pb.UserServiceServer) error {
 	pb.RegisterUserServiceServer(g.Server, s)
 	return nil
 }
 
-func (g *grpcServer) Serve(ctx context.Context, port int) error {
+func (g *grpcServer) Serve(port int) error {
 	slogger.Info().Log("event", "grpc_server.started", "port", port)
 	defer slogger.Info().Log("event", "grpc_server.stopped")
 

@@ -35,23 +35,18 @@ func NewGatewayProxy(proxyHost string, proxyPort int) *gatewayProxy {
 	}
 }
 
-func (g *gatewayProxy) Init(s gw.UserServiceServer) error {
-	return nil
-}
-
-func (g *gatewayProxy) Serve(ctx context.Context, port int) error {
+func (g *gatewayProxy) Init(ctx context.Context, s gw.UserServiceServer) error {
 	proxyAddr := fmt.Sprintf("%s:%d", g.ProxyOptions.Host, g.ProxyOptions.Port)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := gw.RegisterUserServiceHandlerFromEndpoint(
+	return gw.RegisterUserServiceHandlerFromEndpoint(
 		ctx,
 		g.Server.Handler.(*runtime.ServeMux),
 		proxyAddr,
 		opts,
 	)
-	if err != nil {
-		return errors.Wrap(err, "gateway proxy failed to serve")
-	}
+}
 
+func (g *gatewayProxy) Serve(port int) error {
 	g.Server.Addr = fmt.Sprintf(":%d", port)
 	slogger.Info().Log("event", "gateway_proxy.started", "port", port)
 	defer slogger.Info().Log("event", "gateway_proxy.stopped")

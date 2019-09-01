@@ -7,7 +7,7 @@ import (
 )
 
 type Server interface {
-	Init(s pb.UserServiceServer) error
-	Serve(ctx context.Context, port int) error
+	Init(ctx context.Context, s pb.UserServiceServer) error
+	Serve(port int) error
 	Shutdown(ctx context.Context) error
 }

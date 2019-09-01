@@ -22,7 +22,7 @@ format:
 	gofmt -w .
 
 update:
-	@echo "==> Updating dependancies.."
+	@echo "==> Updating dependencies.."
 	go get -u
 	go mod tidy
 

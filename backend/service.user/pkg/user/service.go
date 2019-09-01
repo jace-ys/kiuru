@@ -26,12 +26,12 @@ func (u *userService) Init() error {
 	return nil
 }
 
-func (u *userService) ListenAndServe(ctx context.Context, s server.Server, port int) error {
-	if err := s.Init(u); err != nil {
+func (u *userService) StartServer(ctx context.Context, s server.Server, port int) error {
+	if err := s.Init(ctx, u); err != nil {
 		return err
 	}
 	defer s.Shutdown(ctx)
-	return s.Serve(ctx, port)
+	return s.Serve(port)
 }
 
 func (s *userService) GetUser(ctx context.Context, r *pb.GetUserRequest) (*pb.GetUserResponse, error) {

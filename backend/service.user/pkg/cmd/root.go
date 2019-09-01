@@ -44,17 +44,18 @@ func NewCmd() *cobra.Command {
 			defer cancelFunc()
 
 			go func(errChan chan error) {
-				errChan <- userService.ListenAndServe(ctx, grpcServer, c.server.port)
+				errChan <- userService.StartServer(ctx, grpcServer, c.server.port)
 			}(errChan)
 
 			go func(errChan chan error) {
-				errChan <- userService.ListenAndServe(ctx, gatewayProxy, c.gateway.port)
+				errChan <- userService.StartServer(ctx, gatewayProxy, c.gateway.port)
 			}(errChan)
 
 			select {
 			case err := <-errChan:
 				exit(err)
 			case <-ctx.Done():
+				exit(ctx.Err())
 			}
 		},
 	}
