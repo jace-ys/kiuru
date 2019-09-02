@@ -32,16 +32,18 @@ func NewCmd() *cobra.Command {
 		Use:   "service",
 		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
-			userService, err := user.NewService()
-			if err != nil {
+			userService := user.NewService()
+			if err := userService.Init(); err != nil {
 				exit(err)
 			}
+			defer userService.Teardown()
+
 			grpcServer := server.NewGrpcServer()
 			gatewayProxy := server.NewGatewayProxy(c.server.host, c.server.port)
 
 			errChan := make(chan error)
-			ctx, cancelFunc := context.WithCancel(context.Background())
-			defer cancelFunc()
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
 			go func(errChan chan error) {
 				errChan <- userService.StartServer(ctx, grpcServer, c.server.port)
