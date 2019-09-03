@@ -39,7 +39,7 @@ for target in "${ADDR[@]}"; do
     ${PROTOPATH}/${target}.proto
   echo "==> Generated gRPC stub from ${target}.proto"
 
-  if ${GATEWAY}; then
+  if [ "$GATEWAY" = true ]; then
     protoc \
       -I/usr/local/include \
       -I${PROTOPATH} \
