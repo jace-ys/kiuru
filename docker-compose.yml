@@ -32,8 +32,6 @@ services:
     image: cockroachdb/cockroach:v19.1.4
     entrypoint: /cockroach/sidecar/init-db.sh
     command: db.cockroach:26257
-    depends_on:
-      - db.cockroach
     networks:
       - roachnet
     volumes:
