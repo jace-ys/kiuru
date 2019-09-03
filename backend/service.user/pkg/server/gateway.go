@@ -13,6 +13,10 @@ import (
 	gw "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
 
+type GatewayConfig struct {
+	Port int
+}
+
 type gatewayProxy struct {
 	Server       *http.Server
 	ProxyOptions *proxyOptions

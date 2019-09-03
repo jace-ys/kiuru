@@ -12,6 +12,11 @@ import (
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
 
+type GrpcServerConfig struct {
+	Host string
+	Port int
+}
+
 type grpcServer struct {
 	Server *grpc.Server
 }

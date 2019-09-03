@@ -11,7 +11,7 @@ build:
 
 run:
 	@echo "==> Executing binary.."
-	@./serve.sh
+	./serve-dev.sh
 
 test:
 	@echo "==> Running tests.."
