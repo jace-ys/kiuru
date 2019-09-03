@@ -1,14 +1,40 @@
 version: "3.7"
 
+networks:
+  roachnet:
+    driver: bridge
+
 services:
   client.web:
-    build: frontend/client.web
+    build: ./frontend/client.web
     image: kru-travel/client.web:latest
     ports:
-      - "5000:80"
+      - "8000:80"
 
   service.user:
-    build: backend/service.user
+    build: ./backend/service.user
     image: kru-travel/service.user:latest
     ports:
-      - "5001:8081"
+      - "8001:8081"
+
+  db.cockroach:
+    image: cockroachdb/cockroach:v19.1.4
+    command: start --insecure
+    networks:
+      - roachnet
+    ports:
+      - "26257:26257"
+      - "9000:8080"
+    # volumes:
+    #   - ./databases/cockroach/cockroach-data/roach-one:/cockroach/cockroach-data
+
+  db.cockroach.sidecar:
+    image: cockroachdb/cockroach:v19.1.4
+    entrypoint: /cockroach/sidecar/init-db.sh
+    command: db.cockroach:26257
+    depends_on:
+      - db.cockroach
+    networks:
+      - roachnet
+    volumes:
+      - ./databases/cockroach/sidecar:/cockroach/sidecar

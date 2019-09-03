@@ -9,3 +9,6 @@ build
 
 # go binaries
 main
+
+# data
+cockroach-data
