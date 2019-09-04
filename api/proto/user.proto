@@ -18,6 +18,7 @@ message GetUserRequest {
 
 message GetUserResponse {
   string id = 1;
-  string username = 3;
-  string name = 2;
-}
+  string username = 2;
+  string email = 3;
+  string name = 4;
+ }

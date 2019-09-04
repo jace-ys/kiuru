@@ -5,6 +5,8 @@ CREATE DATABASE IF NOT EXISTS kru;
 CREATE TABLE IF NOT EXISTS kru.users (
   id STRING PRIMARY KEY,
   username STRING,
+  password STRING,
+  email STRING,
   name STRING
 );
 

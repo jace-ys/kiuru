@@ -1,1 +1,1 @@
-INSERT INTO kru.users VALUES ('1', 'jaceys', 'Jace Tan');
+INSERT INTO kru.users VALUES ('1', 'jaceys', 'my-secret-password', 'jaceys.tan@gmail.com', 'Jace Tan');
