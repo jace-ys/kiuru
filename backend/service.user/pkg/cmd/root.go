@@ -25,8 +25,13 @@ func NewCmd() *cobra.Command {
 		Use:   "service",
 		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
+			crdbClient, err := crdb.NewCrdbClient(c.database)
+			if err != nil {
+				exit(err)
+			}
+
 			userService := user.NewService()
-			if err := userService.Init(c.database); err != nil {
+			if err := userService.Init(crdbClient); err != nil {
 				exit(err)
 			}
 			defer userService.Teardown()

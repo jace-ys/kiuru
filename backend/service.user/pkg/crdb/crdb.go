@@ -25,7 +25,7 @@ type DB struct {
 	*sqlx.DB
 }
 
-func Connect(c Config) (*DB, error) {
+func NewCrdbClient(c Config) (*DB, error) {
 	connStr := fmt.Sprintf("postgresql://%s@%s:%d/%s?%s", c.User, c.Host, c.Port, c.DbName, sslMode(c.Insecure))
 	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
@@ -35,13 +35,6 @@ func Connect(c Config) (*DB, error) {
 	db.MapperFunc(toLowerSnakeCase)
 	slogger.Info().Log("event", "crdb_connection.success")
 	return &DB{db}, nil
-}
-
-func sslMode(insecure bool) string {
-	if insecure {
-		return "sslmode=disable"
-	}
-	return "sslmode=require"
 }
 
 func (db *DB) Transact(ctx context.Context, fn func(*sqlx.Tx) error) error {
@@ -55,6 +48,13 @@ func (db *DB) Transact(ctx context.Context, fn func(*sqlx.Tx) error) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+func sslMode(insecure bool) string {
+	if insecure {
+		return "sslmode=disable"
+	}
+	return "sslmode=require"
 }
 
 func toLowerSnakeCase(str string) string {

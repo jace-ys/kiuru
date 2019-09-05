@@ -3,28 +3,36 @@ package user
 import (
 	"context"
 
-	"github.com/jace-ys/kru-travel/backend/service.user/pkg/crdb"
-	"github.com/jace-ys/kru-travel/backend/service.user/pkg/server"
+	"github.com/jmoiron/sqlx"
+
+	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
 
+type DbClient interface {
+	Transact(ctx context.Context, fn func(*sqlx.Tx) error) error
+	Close() error
+}
+
+type Server interface {
+	Init(ctx context.Context, s pb.UserServiceServer) error
+	Serve(port int) error
+	Shutdown(ctx context.Context) error
+}
+
 type userService struct {
-	db *crdb.DB
+	db DbClient
 }
 
 func NewService() *userService {
 	return &userService{}
 }
 
-func (u *userService) Init(crdbConfig crdb.Config) error {
-	db, err := crdb.Connect(crdbConfig)
-	if err != nil {
-		return err
-	}
-	u.db = db
+func (u *userService) Init(dbClient DbClient) error {
+	u.db = dbClient
 	return nil
 }
 
-func (u *userService) StartServer(ctx context.Context, s server.Server, port int) error {
+func (u *userService) StartServer(ctx context.Context, s Server, port int) error {
 	if err := s.Init(ctx, u); err != nil {
 		return err
 	}
