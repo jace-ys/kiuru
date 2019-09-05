@@ -44,6 +44,6 @@ func (g *grpcServer) Serve(port int) error {
 }
 
 func (g *grpcServer) Shutdown(ctx context.Context) error {
-	g.Server.Stop()
+	g.Server.GracefulStop()
 	return nil
 }

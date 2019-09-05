@@ -40,6 +40,6 @@ func (u *userService) StartServer(ctx context.Context, s Server, port int) error
 	return s.Serve(port)
 }
 
-func (u *userService) Teardown() {
-	u.db.Close()
+func (u *userService) Teardown() error {
+	return u.db.Close()
 }

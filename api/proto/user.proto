@@ -5,6 +5,12 @@ package user;
 import "google/api/annotations.proto";
 
 service UserService {
+  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/users"
+    };
+  }
+
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
     option (google.api.http) = {
       get: "/v1/users/{id}"
@@ -12,13 +18,23 @@ service UserService {
   }
 }
 
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string name = 4;
+}
+
+message GetAllUsersRequest {}
+
+message GetAllUsersResponse {
+  repeated User users = 1;
+}
+
 message GetUserRequest {
   string id = 1;
 }
 
 message GetUserResponse {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  string name = 4;
- }
+  User user = 1;
+}

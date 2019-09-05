@@ -61,9 +61,9 @@ func NewCmd() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().IntVar(&c.server.Port, "port", 8080, "port for the gRPC server")
-	rootCmd.PersistentFlags().StringVar(&c.server.Host, "host", "localhost", "host for the gRPC server")
+	rootCmd.PersistentFlags().StringVar(&c.server.Host, "host", "0.0.0.0", "host for the gRPC server")
 	rootCmd.PersistentFlags().IntVar(&c.gateway.Port, "gateway-port", 8081, "port for the REST gateway proxy")
-	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "localhost", "host for the CockroachDB cluster")
+	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "0.0.0.0", "host for the CockroachDB cluster")
 	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.DbName, "crdb-dbname", "", "database name for the CockroachDB cluster")

@@ -58,6 +58,5 @@ func (g *gatewayProxy) Serve(port int) error {
 }
 
 func (g *gatewayProxy) Shutdown(ctx context.Context) error {
-	g.Server.Shutdown(ctx)
-	return nil
+	return g.Server.Shutdown(ctx)
 }
