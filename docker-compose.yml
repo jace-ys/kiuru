@@ -1,9 +1,5 @@
 version: "3.7"
 
-networks:
-  roachnet:
-    driver: bridge
-
 services:
   client.web:
     build: ./frontend/client.web
@@ -12,16 +8,19 @@ services:
       - "8000:80"
 
   service.user:
-    build: ./backend/service.user
+    build:
+      context: ./backend/service.user
+      dockerfile: dev.Dockerfile
     image: kru-travel/service.user:latest
+    environment:
+      CRDB_HOST: db.cockroach
+      CRDB_PORT: 26257
     ports:
       - "8001:8081"
 
   db.cockroach:
     image: cockroachdb/cockroach:v19.1.4
     command: start --insecure
-    networks:
-      - roachnet
     ports:
       - "26257:26257"
       - "9000:8080"
@@ -32,7 +31,5 @@ services:
     image: cockroachdb/cockroach:v19.1.4
     entrypoint: /cockroach/sidecar/init-db.sh
     command: db.cockroach:26257
-    networks:
-      - roachnet
     volumes:
       - ./databases/cockroach/sidecar:/cockroach/sidecar

@@ -22,7 +22,7 @@ docker-compose up
 - Start database containers
 
 ```
-docker-compose up -d db.cockroach
+docker-compose up -d db.cockroach db.cockroach.sidecar
 ```
 
 - Run individual services
