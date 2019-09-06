@@ -67,6 +67,7 @@ func NewCmd() *cobra.Command {
 	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.DbName, "crdb-dbname", "", "database name for the CockroachDB cluster")
+	rootCmd.PersistentFlags().IntVar(&c.database.Retry, "crdb-retry", 10, "retry interval for connecting to the CockroachDB cluster")
 	rootCmd.PersistentFlags().BoolVar(&c.database.Insecure, "crdb-insecure", false, "enable insecure mode for the CockroachDB cluster")
 
 	return rootCmd

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
@@ -18,6 +19,7 @@ type Config struct {
 	Port     int
 	User     string
 	DbName   string
+	Retry    int
 	Insecure bool
 }
 
@@ -25,9 +27,8 @@ type DB struct {
 	*sqlx.DB
 }
 
-func NewCrdbClient(c Config) (*DB, error) {
-	connStr := fmt.Sprintf("postgresql://%s@%s:%d/%s?%s", c.User, c.Host, c.Port, c.DbName, sslMode(c.Insecure))
-	db, err := connect(connStr)
+func NewCrdbClient(crdbConfig Config) (*DB, error) {
+	db, err := connect(crdbConfig)
 	if err != nil {
 		slogger.Error().Log("event", "crdb_connection.failed", "msg", err)
 		return nil, errors.Wrap(err, "database connection failed")
@@ -50,16 +51,21 @@ func (db *DB) Transact(ctx context.Context, fn func(*sqlx.Tx) error) error {
 	return tx.Commit()
 }
 
-func connect(connStr string) (*sqlx.DB, error) {
-	db, err := sqlx.Open("postgres", connStr)
-	if err != nil {
-		return nil, err
+func connect(c Config) (*sqlx.DB, error) {
+	connStr := fmt.Sprintf("postgresql://%s@%s:%d/%s?%s", c.User, c.Host, c.Port, c.DbName, sslMode(c.Insecure))
+	for {
+		db, err := sqlx.Open("postgres", connStr)
+		if err != nil {
+			return nil, err
+		}
+		err = db.Ping()
+		if err != nil {
+			slogger.Warn().Log("event", "retrying connection to database", "host", c.Host, "port", c.Port, "msg", err)
+			time.Sleep(time.Second * time.Duration(c.Retry))
+		} else {
+			return db, nil
+		}
 	}
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
 }
 
 func sslMode(insecure bool) string {
