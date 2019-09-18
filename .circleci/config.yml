@@ -28,7 +28,7 @@ jobs:
 
   service.user:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: ~/kru-travel/backend/service.user
     steps:
       - checkout:
