@@ -24,7 +24,7 @@ while getopts "l:p:t:g" opt; do
 done
 
 if [ "$LANG" = "" ] || [ "$PROTOPATH" = "" ] || [ "$TARGETS" = "" ]; then
-  echo "Usage: protogen.sh [-l] [-d] [-t]"
+  echo "Usage: protogen [-l] [-d] [-t]"
   exit 1
 fi
 

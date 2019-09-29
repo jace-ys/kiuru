@@ -11,7 +11,7 @@ build:
 
 run:
 	@echo "==> Executing binary.."
-	./serve-dev.sh
+	./serve-dev
 
 test:
 	@echo "==> Running tests.."
@@ -31,4 +31,4 @@ clean:
 	go clean
 
 proto:
-	../../bin/protogen.sh -l go -t user -p ../../api/proto -g
+	../../bin/protogen -l go -t user -p ../../api/proto -g

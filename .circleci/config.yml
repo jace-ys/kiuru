@@ -33,7 +33,7 @@ jobs:
     steps:
       - checkout:
           path: ~/kru-travel
-      - run: ~/kru-travel/.circleci/setup/protoc.sh go
+      - run: ~/kru-travel/.circleci/setup/protoc go
       - restore_cache:
           key: service.user-cache-{{ checksum "go.sum" }}
       - run:

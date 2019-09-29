@@ -29,7 +29,7 @@ services:
 
   db.cockroach.sidecar:
     image: cockroachdb/cockroach:v19.1.4
-    entrypoint: /cockroach/sidecar/init-db.sh
+    entrypoint: /cockroach/sidecar/init-db
     command: db.cockroach:26257
     volumes:
       - ./databases/cockroach/sidecar:/cockroach/sidecar
