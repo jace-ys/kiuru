@@ -9,7 +9,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
-	"github.com/pkg/errors"
 
 	_ "github.com/lib/pq"
 )
@@ -31,7 +30,7 @@ func NewCrdbClient(crdbConfig Config) (*DB, error) {
 	db, err := connect(crdbConfig)
 	if err != nil {
 		slogger.Error().Log("event", "crdb_connection.failed", "msg", err)
-		return nil, errors.Wrap(err, "database connection failed")
+		return nil, fmt.Errorf("database connection failed: %w", err)
 	}
 	db.MapperFunc(toLowerSnakeCase)
 	slogger.Info().Log("event", "crdb_connection.success")
@@ -60,7 +59,7 @@ func connect(c Config) (*sqlx.DB, error) {
 		}
 		err = db.Ping()
 		if err != nil {
-			slogger.Warn().Log("event", "retrying connection to database", "host", c.Host, "port", c.Port, "msg", err)
+			slogger.Warn().Log("event", "crdb_connection.retry", "host", c.Host, "port", c.Port, "msg", err)
 			time.Sleep(time.Second * time.Duration(c.Retry))
 		} else {
 			return db, nil

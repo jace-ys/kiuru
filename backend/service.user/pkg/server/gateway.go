@@ -6,8 +6,9 @@ import (
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/kru-travel/airdrop-go/pkg/gorpc"
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
-	"github.com/pkg/errors"
+
 	"google.golang.org/grpc"
 
 	gw "github.com/jace-ys/kru-travel/backend/service.user/api/user"
@@ -40,6 +41,7 @@ func NewGatewayProxy(proxyHost string, proxyPort int) *gatewayProxy {
 }
 
 func (g *gatewayProxy) Init(ctx context.Context, s gw.UserServiceServer) error {
+	runtime.HTTPError = gorpc.GatewayHTTPError
 	proxyAddr := fmt.Sprintf("%s:%d", g.ProxyOptions.Host, g.ProxyOptions.Port)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 	return gw.RegisterUserServiceHandlerFromEndpoint(
@@ -54,7 +56,7 @@ func (g *gatewayProxy) Serve(port int) error {
 	g.Server.Addr = fmt.Sprintf(":%d", port)
 	slogger.Info().Log("event", "gateway_proxy.started", "port", port)
 	defer slogger.Info().Log("event", "gateway_proxy.stopped")
-	return errors.Wrap(g.Server.ListenAndServe(), "gateway proxy failed to serve")
+	return fmt.Errorf("gateway proxy failed to serve: %w", g.Server.ListenAndServe())
 }
 
 func (g *gatewayProxy) Shutdown(ctx context.Context) error {

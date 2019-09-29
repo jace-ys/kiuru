@@ -6,7 +6,6 @@ import (
 	"net"
 
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
@@ -38,9 +37,9 @@ func (g *grpcServer) Serve(port int) error {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		return errors.Wrap(err, "grpc server failed to serve")
+		return fmt.Errorf("grpc server failed to serve: %w", err)
 	}
-	return errors.Wrap(g.Server.Serve(lis), "grpc server failed to serve")
+	return fmt.Errorf("grpc server failed to serve: %w", g.Server.Serve(lis))
 }
 
 func (g *grpcServer) Shutdown(ctx context.Context) error {

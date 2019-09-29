@@ -3,12 +3,12 @@ package user
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/kru-travel/airdrop-go/pkg/gorpc"
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
@@ -19,7 +19,8 @@ func (u *userService) GetAllUsers(ctx context.Context, req *pb.GetAllUsersReques
 
 	users, err := u.getAllUsers(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get all users")
+		slogger.Error().Log("event", "get_all_users.failed", "msg", err)
+		return nil, gorpc.InternalError()
 	}
 
 	slogger.Info().Log("event", "get_all_users.success")
@@ -64,7 +65,12 @@ func (u *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 	user, err := u.getUser(ctx, req.Id)
 	if err != nil {
 		slogger.Error().Log("event", "get_user.failed", "user_id", req.Id, "msg", err)
-		return nil, errors.Wrap(err, "failed to get user")
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			return nil, gorpc.Error(codes.NotFound, err)
+		default:
+			return nil, gorpc.InternalError()
+		}
 	}
 
 	slogger.Info().Log("event", "get_user.success", "user_id", req.Id)
@@ -104,7 +110,12 @@ func (u *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 	err := u.deleteUser(ctx, req.Id)
 	if err != nil {
 		slogger.Error().Log("event", "delete_user.failed", "user_id", req.Id, "msg", err)
-		return nil, status.Error(codes.NotFound, errors.Wrap(err, "failed to delete user").Error())
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			return nil, gorpc.Error(codes.NotFound, err)
+		default:
+			return nil, gorpc.InternalError()
+		}
 	}
 
 	slogger.Info().Log("event", "delete_user.success", "user_id", req.Id)
