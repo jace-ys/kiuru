@@ -3,9 +3,10 @@
 exec ./main \
   --port "${PORT:-8080}" \
   --gateway-port "${GATEWAY_PORT:-8081}" \
-  --crdb-host "${CRDB_HOST:-localhost}" \
+  --crdb-host "${CRDB_HOST:-127.0.0.1}" \
   --crdb-port "${CRDB_PORT:-26257}" \
   --crdb-user "${CRDB_USER:-kru_service}" \
   --crdb-dbname "${CRDB_NAME:-kru}" \
-  --crdb-retry "${CRDB_RETRY:-10}" \
+  --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
+  --crdb-retry-count "${CRDB_RETRY_COUNT:-10}" \
   --crdb-insecure

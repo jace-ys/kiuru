@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"github.com/spf13/cobra"
@@ -61,13 +62,14 @@ func NewCmd() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().IntVar(&c.server.Port, "port", 8080, "port for the gRPC server")
-	rootCmd.PersistentFlags().StringVar(&c.server.Host, "host", "0.0.0.0", "host for the gRPC server")
+	rootCmd.PersistentFlags().StringVar(&c.server.Host, "host", "127.0.0.1", "host for the gRPC server")
 	rootCmd.PersistentFlags().IntVar(&c.gateway.Port, "gateway-port", 8081, "port for the REST gateway proxy")
-	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "0.0.0.0", "host for the CockroachDB cluster")
+	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "127.0.0.1", "host for the CockroachDB cluster")
 	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.DbName, "crdb-dbname", "", "database name for the CockroachDB cluster")
-	rootCmd.PersistentFlags().IntVar(&c.database.Retry, "crdb-retry", 10, "retry interval for connecting to the CockroachDB cluster")
+	rootCmd.PersistentFlags().DurationVar(&c.database.RetryInterval, "crdb-retry-interval", 15*time.Second, "retry interval for connecting to the CockroachDB cluster")
+	rootCmd.PersistentFlags().IntVar(&c.database.RetryCount, "crdb-retry-count", 10, "max number of retries for connecting to the CockroachDB cluster")
 	rootCmd.PersistentFlags().BoolVar(&c.database.Insecure, "crdb-insecure", false, "enable insecure mode for the CockroachDB cluster")
 
 	return rootCmd

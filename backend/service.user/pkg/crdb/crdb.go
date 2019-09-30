@@ -14,12 +14,13 @@ import (
 )
 
 type Config struct {
-	Host     string
-	Port     int
-	User     string
-	DbName   string
-	Retry    int
-	Insecure bool
+	Host          string
+	Port          int
+	User          string
+	DbName        string
+	RetryInterval time.Duration
+	RetryCount    int
+	Insecure      bool
 }
 
 type DB struct {
@@ -52,7 +53,7 @@ func (db *DB) Transact(ctx context.Context, fn func(*sqlx.Tx) error) error {
 
 func connect(c Config) (*sqlx.DB, error) {
 	connStr := fmt.Sprintf("postgresql://%s@%s:%d/%s?%s", c.User, c.Host, c.Port, c.DbName, sslMode(c.Insecure))
-	for {
+	for i := 0; i < c.RetryCount; i++ {
 		db, err := sqlx.Open("postgres", connStr)
 		if err != nil {
 			return nil, err
@@ -60,11 +61,12 @@ func connect(c Config) (*sqlx.DB, error) {
 		err = db.Ping()
 		if err != nil {
 			slogger.Warn().Log("event", "crdb_connection.retry", "host", c.Host, "port", c.Port, "msg", err)
-			time.Sleep(time.Second * time.Duration(c.Retry))
+			time.Sleep(c.RetryInterval)
 		} else {
 			return db, nil
 		}
 	}
+	return nil, fmt.Errorf("max number of retries exceeded")
 }
 
 func sslMode(insecure bool) string {

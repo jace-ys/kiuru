@@ -7,4 +7,5 @@ exec ./main \
   --crdb-port "${CRDB_PORT:-26257}" \
   --crdb-user "$CRDB_USER" \
   --crdb-dbname "$CRDB_NAME" \
-  --crdb-retry "${CRDB_RETRY:-10}"
+  --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
+  --crdb-retry-count "${CRDB_RETRY_COUNT:-10}"
