@@ -3,10 +3,10 @@ ALTER RANGE default CONFIGURE ZONE USING num_replicas = 1;
 CREATE DATABASE IF NOT EXISTS kru;
 
 CREATE TABLE IF NOT EXISTS kru.users (
-  id STRING PRIMARY KEY,
-  username STRING,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username STRING UNIQUE,
   password STRING,
-  email STRING,
+  email STRING UNIQUE,
   name STRING
 );
 
