@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
+	"github.com/lib/pq"
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
@@ -40,6 +41,7 @@ func (u *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 		if err != nil {
 			return err
 		}
+		defer rows.Close()
 		for rows.Next() {
 			var user pb.User
 			if err := rows.StructScan(&user); err != nil {
@@ -47,10 +49,7 @@ func (u *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 			}
 			users = append(users, &user)
 		}
-		if err := rows.Err(); err != nil {
-			return err
-		}
-		return nil
+		return rows.Err()
 	})
 	if err != nil {
 		return nil, err
@@ -90,7 +89,7 @@ func (u *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		row := tx.QueryRowx(query, userId)
 		err := row.StructScan(&user)
 		switch {
-		case err == sql.ErrNoRows:
+		case errors.Is(err, sql.ErrNoRows):
 			return ErrUserNotFound
 		case err != nil:
 			return err
@@ -101,6 +100,57 @@ func (u *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (u *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	slogger.Info().Log("event", "create_user.started")
+	defer slogger.Info().Log("event", "create_user.finished")
+
+	userId, err := u.createUser(ctx, req.User)
+	if err != nil {
+		slogger.Error().Log("event", "create_user.failed", "msg", err)
+		switch {
+		case errors.Is(err, ErrUserExists):
+			return nil, gorpc.Error(codes.NotFound, err)
+		default:
+			return nil, gorpc.InternalError()
+		}
+	}
+
+	slogger.Info().Log("event", "create_user.success", "user_id", userId)
+	return &pb.CreateUserResponse{
+		Id: userId,
+	}, nil
+}
+
+func (u *userService) createUser(ctx context.Context, user *pb.User) (string, error) {
+	var userId string
+	err := u.db.Transact(ctx, func(tx *sqlx.Tx) error {
+		query := `
+		INSERT INTO users (username, email, name)
+		VALUES (:username, :email, :name)
+		RETURNING id
+		`
+		stmt, err := tx.PrepareNamed(query)
+		if err != nil {
+			return err
+		}
+		err = stmt.QueryRowx(user).Scan(&userId)
+		if err != nil {
+			var pqErr *pq.Error
+			switch {
+			case errors.As(err, &pqErr) && pqErr.Code == "23505":
+				return ErrUserExistsCtx(pqErr)
+			default:
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return userId, err
+	}
+	return userId, nil
 }
 
 func (u *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
