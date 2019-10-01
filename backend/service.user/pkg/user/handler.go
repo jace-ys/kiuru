@@ -111,7 +111,7 @@ func (u *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		slogger.Error().Log("event", "create_user.failed", "msg", err)
 		switch {
 		case errors.Is(err, ErrUserExists):
-			return nil, gorpc.Error(codes.NotFound, err)
+			return nil, gorpc.Error(codes.AlreadyExists, err)
 		default:
 			return nil, gorpc.InternalError()
 		}
