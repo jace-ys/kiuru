@@ -37,7 +37,7 @@ func (u *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 		SELECT u.id, u.username, u.email, u.name
 		FROM users as u
 		`
-		rows, err := tx.Queryx(query)
+		rows, err := tx.QueryxContext(ctx, query)
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func (u *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		FROM users as u
 		WHERE id=$1
 		`
-		row := tx.QueryRowx(query, userId)
+		row := tx.QueryRowxContext(ctx, query, userId)
 		err := row.StructScan(&user)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -131,11 +131,11 @@ func (u *userService) createUser(ctx context.Context, user *pb.User) (string, er
 		VALUES (:username, :email, :name)
 		RETURNING id
 		`
-		stmt, err := tx.PrepareNamed(query)
+		stmt, err := tx.PrepareNamedContext(ctx, query)
 		if err != nil {
 			return err
 		}
-		err = stmt.QueryRowx(user).Scan(&userId)
+		err = stmt.QueryRowxContext(ctx, user).Scan(&userId)
 		if err != nil {
 			var pqErr *pq.Error
 			switch {
@@ -178,7 +178,7 @@ func (u *userService) deleteUser(ctx context.Context, userId string) error {
 		DELETE FROM users
 		WHERE id=$1
 		`
-		res, err := tx.Exec(query, userId)
+		res, err := tx.ExecContext(ctx, query, userId)
 		if err != nil {
 			return err
 		}
