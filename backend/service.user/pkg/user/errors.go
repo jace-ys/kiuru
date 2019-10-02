@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrUserNotFound = errors.New("requested user not found")
-	ErrUserExists   = errors.New("account already exists")
-	ErrUnknown      = errors.New("unknown error")
+	ErrUserNotFound   = errors.New("requested user not found")
+	ErrUserExists     = errors.New("account already exists")
+	ErrInvalidRequest = errors.New("invalid request")
+	ErrUnknown        = errors.New("unknown error")
 )
 
 func ErrUserExistsCtx(pqErr *pq.Error) error {
@@ -21,4 +22,8 @@ func ErrUserExistsCtx(pqErr *pq.Error) error {
 		return fmt.Errorf("%w: %w", ErrUnknown, pqErr)
 	}
 	return fmt.Errorf("%w: %s taken", ErrUserExists, match[1])
+}
+
+func ErrInvalidRequestCtx(errCtx string) error {
+	return fmt.Errorf("%w: %s", ErrInvalidRequest, errCtx)
 }

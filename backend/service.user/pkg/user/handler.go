@@ -106,6 +106,12 @@ func (u *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	slogger.Info().Log("event", "create_user.started")
 	defer slogger.Info().Log("event", "create_user.finished")
 
+	err := u.validateUser(req.User)
+	if err != nil {
+		slogger.Error().Log("event", "create_user.failed", "msg", err)
+		return nil, gorpc.Error(codes.InvalidArgument, err)
+	}
+
 	userId, err := u.createUser(ctx, req.User)
 	if err != nil {
 		slogger.Error().Log("event", "create_user.failed", "msg", err)
@@ -121,6 +127,18 @@ func (u *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	return &pb.CreateUserResponse{
 		Id: userId,
 	}, nil
+}
+
+func (u *userService) validateUser(user *pb.User) error {
+	switch {
+	case user.Username == "":
+		return ErrInvalidRequestCtx("missing <username> field")
+	case user.Email == "":
+		return ErrInvalidRequestCtx("missing <email> field")
+	case user.Name == "":
+		return ErrInvalidRequestCtx("missing <name> field")
+	}
+	return nil
 }
 
 func (u *userService) createUser(ctx context.Context, user *pb.User) (string, error) {
