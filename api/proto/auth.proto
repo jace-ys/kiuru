@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/api/annotations.proto";
+
+service AuthService {
+  rpc GetAuthToken(GetAuthTokenRequest) returns (GetAuthTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/login/token"
+      body: "*"
+    };
+  }
+
+  rpc RefreshAuthToken(RefreshAuthTokenRequest) returns (RefreshAuthTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/login/token_refresh"
+    };
+  }
+}
+
+message GetAuthTokenRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message GetAuthTokenResponse {}
+
+message RefreshAuthTokenRequest {}
+
+message RefreshAuthTokenResponse {}

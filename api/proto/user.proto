@@ -29,19 +29,6 @@ service UserService {
       delete: "/v1/users/{id}"
     };
   }
-
-  rpc GetAuthToken(GetAuthTokenRequest) returns (GetAuthTokenResponse) {
-    option (google.api.http) = {
-      post: "/v1/auth/token"
-      body: "*"
-    };
-  }
-
-  rpc RefreshAuthToken(RefreshAuthTokenRequest) returns (RefreshAuthTokenResponse) {
-    option (google.api.http) = {
-      post: "/v1/auth/token/refresh"
-    };
-  }
 }
 
 message User {
@@ -79,14 +66,3 @@ message DeleteUserRequest {
 }
 
 message DeleteUserResponse {}
-
-message GetAuthTokenRequest {
-  string username = 1;
-  string password = 2;
-}
-
-message GetAuthTokenResponse {}
-
-message RefreshAuthTokenRequest {}
-
-message RefreshAuthTokenResponse {}

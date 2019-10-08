@@ -1,0 +1,11 @@
+#!/bin/sh
+
+exec ./main \
+  --port "$PORT" \
+  --gateway-port "$GATEWAY_PORT" \
+  --crdb-host "$CRDB_HOST" \
+  --crdb-port "${CRDB_PORT:-26257}" \
+  --crdb-user "$CRDB_USER" \
+  --crdb-dbname "$CRDB_NAME" \
+  --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
+  --crdb-retry-count "${CRDB_RETRY_COUNT:-10}"

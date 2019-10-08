@@ -7,6 +7,17 @@ services:
     ports:
       - "8000:80"
 
+  service.auth:
+    build:
+      context: ./backend/service.auth
+      dockerfile: dev.Dockerfile
+    image: kru-travel/service.auth:latest
+    environment:
+      CRDB_HOST: db.cockroach
+      CRDB_PORT: 26257
+    ports:
+      - "8001:8081"
+
   service.user:
     build:
       context: ./backend/service.user
@@ -16,7 +27,7 @@ services:
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
     ports:
-      - "8001:8081"
+      - "8002:8081"
 
   db.cockroach:
     image: cockroachdb/cockroach:v19.1.4
