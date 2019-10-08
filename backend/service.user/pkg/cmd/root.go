@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/kru-travel/airdrop-go/pkg/crdb"
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"github.com/spf13/cobra"
 
-	"github.com/jace-ys/kru-travel/backend/service.user/pkg/crdb"
 	"github.com/jace-ys/kru-travel/backend/service.user/pkg/server"
 	"github.com/jace-ys/kru-travel/backend/service.user/pkg/user"
 )

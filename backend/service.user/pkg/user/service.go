@@ -14,7 +14,7 @@ type DbClient interface {
 }
 
 type Server interface {
-	Init(ctx context.Context, s pb.UserServiceServer) error
+	Init(ctx context.Context, server pb.UserServiceServer) error
 	Serve(port int) error
 	Shutdown(ctx context.Context) error
 }
@@ -27,19 +27,19 @@ func NewService() *userService {
 	return &userService{}
 }
 
-func (u *userService) Init(dbClient DbClient) error {
-	u.db = dbClient
+func (s *userService) Init(dbClient DbClient) error {
+	s.db = dbClient
 	return nil
 }
 
-func (u *userService) StartServer(ctx context.Context, s Server, port int) error {
-	if err := s.Init(ctx, u); err != nil {
+func (s *userService) StartServer(ctx context.Context, server Server, port int) error {
+	if err := server.Init(ctx, s); err != nil {
 		return err
 	}
-	defer s.Shutdown(ctx)
-	return s.Serve(port)
+	defer server.Shutdown(ctx)
+	return server.Serve(port)
 }
 
-func (u *userService) Teardown() error {
-	return u.db.Close()
+func (s *userService) Teardown() error {
+	return s.db.Close()
 }
