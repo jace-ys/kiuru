@@ -23,8 +23,8 @@ type userService struct {
 	db DbClient
 }
 
-func NewService() *userService {
-	return &userService{}
+func NewService() (*userService, error) {
+	return &userService{}, nil
 }
 
 func (s *userService) Init(dbClient DbClient) error {

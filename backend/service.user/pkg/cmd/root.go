@@ -31,7 +31,10 @@ func NewCmd() *cobra.Command {
 				exit(err)
 			}
 
-			userService := user.NewService()
+			userService, err := user.NewService()
+			if err != nil {
+				exit(err)
+			}
 			if err := userService.Init(crdbClient); err != nil {
 				exit(err)
 			}
