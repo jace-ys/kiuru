@@ -2,13 +2,15 @@ package auth
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.auth/api/auth"
 )
 
-type DbClient interface {
+type DBClient interface {
+	Connect() error
 	Transact(ctx context.Context, fn func(*sqlx.Tx) error) error
 	Close() error
 }
@@ -20,15 +22,24 @@ type Server interface {
 }
 
 type authService struct {
-	db DbClient
+	db        DBClient
+	jwtConfig JWTConfig
 }
 
-func NewService() *authService {
-	return &authService{}
+func NewService(dbClient DBClient, jwtConfig JWTConfig) (*authService, error) {
+	if jwtConfig.SecretKey == "" {
+		return nil, fmt.Errorf("failed to create service: %w", ErrMissingSecret)
+	}
+	return &authService{
+		db:        dbClient,
+		jwtConfig: jwtConfig,
+	}, nil
 }
 
-func (s *authService) Init(dbClient DbClient) error {
-	s.db = dbClient
+func (s *authService) Init() error {
+	if err := s.db.Connect(); err != nil {
+		return err
+	}
 	return nil
 }
 

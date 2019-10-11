@@ -1,6 +1,6 @@
 #!/bin/sh
 
-exec ./main \
+exec service \
   --port "$PORT" \
   --gateway-port "$GATEWAY_PORT" \
   --crdb-host "$CRDB_HOST" \
@@ -9,3 +9,6 @@ exec ./main \
   --crdb-dbname "$CRDB_NAME" \
   --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
   --crdb-retry-count "${CRDB_RETRY_COUNT:-10}"
+  --token-secret "${TOKEN_SECRET}" \
+  --token-issuer "${TOKEN_ISSUER}" \
+  --token-ttl "${TOKEN_TTL:-15m}"

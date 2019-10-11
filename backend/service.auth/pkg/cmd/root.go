@@ -17,22 +17,24 @@ type config struct {
 	server   server.GrpcServerConfig
 	gateway  server.GatewayConfig
 	database crdb.Config
+	jwt      auth.JWTConfig
 }
 
-func NewCmd() *cobra.Command {
+func NewRootCmd() *cobra.Command {
 	var c config
 
 	rootCmd := &cobra.Command{
 		Use:   "service",
 		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
-			crdbClient, err := crdb.NewCrdbClient(c.database)
+			crdbClient := crdb.NewCRDBClient(c.database)
+
+			authService, err := auth.NewService(crdbClient, c.jwt)
 			if err != nil {
 				exit(err)
 			}
 
-			authService := auth.NewService()
-			if err := authService.Init(crdbClient); err != nil {
+			if err := authService.Init(); err != nil {
 				exit(err)
 			}
 			defer authService.Teardown()
@@ -67,10 +69,13 @@ func NewCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "127.0.0.1", "host for the CockroachDB cluster")
 	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for the CockroachDB cluster")
-	rootCmd.PersistentFlags().StringVar(&c.database.DbName, "crdb-dbname", "", "database name for the CockroachDB cluster")
+	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for the CockroachDB cluster")
 	rootCmd.PersistentFlags().DurationVar(&c.database.RetryInterval, "crdb-retry-interval", 15*time.Second, "retry interval for connecting to the CockroachDB cluster")
 	rootCmd.PersistentFlags().IntVar(&c.database.RetryCount, "crdb-retry-count", 10, "max number of retries for connecting to the CockroachDB cluster")
 	rootCmd.PersistentFlags().BoolVar(&c.database.Insecure, "crdb-insecure", false, "enable insecure mode for the CockroachDB cluster")
+	rootCmd.PersistentFlags().StringVar(&c.jwt.SecretKey, "token-secret", "", "secret key used to sign JWTs")
+	rootCmd.PersistentFlags().StringVar(&c.jwt.Issuer, "token-issuer", "", "issuer of generated JWTs")
+	rootCmd.PersistentFlags().DurationVar(&c.jwt.TTL, "token-ttl", 15*time.Minute, "time-to-live for generated JWTs")
 
 	return rootCmd
 }
