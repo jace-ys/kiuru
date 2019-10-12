@@ -23,30 +23,25 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 
 	err := s.validateLoginPayload(req)
 	if err != nil {
-		return nil, gorpc.Error(codes.NotFound, err)
+		return nil, gorpc.Error(err)
 	}
 
 	userId, hashedPassword, err := s.getLoginUser(ctx, req.Username)
 	if err != nil {
 		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
-		switch {
-		case errors.Is(err, ErrUserNotFound):
-			return nil, gorpc.Error(codes.NotFound, err)
-		default:
-			return nil, gorpc.InternalError()
-		}
+		return nil, gorpc.Error(err)
 	}
 
 	err = s.verifyLoginPassword(hashedPassword, req.Password)
 	if err != nil {
 		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(codes.NotFound, err)
+		return nil, gorpc.Error(err)
 	}
 
 	jwt, err := s.generateJWT(userId, req.Username)
 	if err != nil {
 		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
-		return nil, gorpc.InternalError()
+		return nil, gorpc.Error(err)
 	}
 
 	slogger.Info().Log("event", "get_auth_token.success")
@@ -58,9 +53,9 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 func (s *authService) validateLoginPayload(login *pb.GenerateAuthTokenRequest) error {
 	switch {
 	case login.Username == "":
-		return ErrInvalidRequestCtx(`missing "username" field`)
+		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %w", ErrInvalidRequest, `missing "username" field`))
 	case login.Password == "":
-		return ErrInvalidRequestCtx(`missing "password" field`)
+		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %w", ErrInvalidRequest, `missing "password" field`))
 	}
 	return nil
 }
@@ -77,21 +72,21 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 		err := row.Scan(&userId, &hashedPassword)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrUserNotFound
+			return gorpc.NewErr(codes.NotFound, ErrUserNotFound)
 		case err != nil:
-			return err
+			return gorpc.NewErr(codes.Internal, err)
 		}
 		return nil
 	})
 	if err != nil {
-		return "", "", err
+		return "", "", gorpc.NewErr(codes.Internal, err)
 	}
 	return userId, hashedPassword, nil
 }
 
 func (s *authService) verifyLoginPassword(hashedPassword, loginPassword string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(loginPassword)); err != nil {
-		return ErrIncorrectPassword
+		return gorpc.NewErr(codes.InvalidArgument, ErrIncorrectPassword)
 	}
 	return nil
 }
@@ -103,13 +98,13 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 	claims, err := s.validateToken(req.Token)
 	if err != nil {
 		slogger.Error().Log("event", "refresh_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(codes.AlreadyExists, err)
+		return nil, gorpc.Error(err)
 	}
 
 	jwt, err := s.generateJWT(claims.UserId, claims.Username)
 	if err != nil {
 		slogger.Error().Log("event", "refresh_auth_token.failed", "msg", err)
-		return nil, gorpc.InternalError()
+		return nil, gorpc.Error(err)
 	}
 
 	slogger.Info().Log("event", "refresh_auth_token.success")
@@ -124,12 +119,12 @@ func (s *authService) validateToken(token string) (*JWTClaims, error) {
 		return []byte(s.jwtConfig.SecretKey), nil
 	})
 	if err != nil || !jwt.Valid {
-		return nil, ErrInvalidToken
+		return nil, gorpc.NewErr(codes.InvalidArgument, ErrInvalidToken)
 	}
 
 	refreshTime := time.Duration(float64(s.jwtConfig.TTL/time.Millisecond)*0.1) * time.Millisecond
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > refreshTime {
-		return nil, ErrRefreshRateExceeded
+		return nil, gorpc.NewErr(codes.AlreadyExists, ErrRefreshRateExceeded)
 	}
 
 	return &claims, nil
@@ -148,7 +143,7 @@ func (s *authService) generateJWT(userId, username string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(s.jwtConfig.SecretKey))
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", ErrGeneratingToken, err)
+		return "", gorpc.NewErr(codes.Internal, fmt.Errorf("%w: %s", ErrGeneratingToken, err))
 	}
 
 	return tokenString, nil

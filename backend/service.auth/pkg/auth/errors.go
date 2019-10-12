@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -20,7 +19,3 @@ var (
 	ErrInvalidRequest = errors.New("invalid request")
 	ErrUnknown        = errors.New("unknown error")
 )
-
-func ErrInvalidRequestCtx(errCtx string) error {
-	return fmt.Errorf("%w: %s", ErrInvalidRequest, errCtx)
-}
