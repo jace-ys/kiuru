@@ -14,7 +14,7 @@ import (
 )
 
 type config struct {
-	server   server.GrpcServerConfig
+	server   server.GRPCServerConfig
 	gateway  server.GatewayConfig
 	database crdb.Config
 	jwt      auth.JWTConfig
@@ -39,7 +39,7 @@ func NewRootCmd() *cobra.Command {
 			}
 			defer authService.Teardown()
 
-			grpcServer := server.NewGrpcServer()
+			grpcServer := server.NewGRPCServer()
 			gatewayProxy := server.NewGatewayProxy(c.server.Host, c.server.Port)
 
 			errChan := make(chan error)

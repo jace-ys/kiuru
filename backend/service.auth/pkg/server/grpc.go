@@ -11,7 +11,7 @@ import (
 	pb "github.com/jace-ys/kru-travel/backend/service.auth/api/auth"
 )
 
-type GrpcServerConfig struct {
+type GRPCServerConfig struct {
 	Host string
 	Port int
 }
@@ -20,7 +20,7 @@ type grpcServer struct {
 	Server *grpc.Server
 }
 
-func NewGrpcServer() *grpcServer {
+func NewGRPCServer() *grpcServer {
 	return &grpcServer{
 		Server: grpc.NewServer(),
 	}

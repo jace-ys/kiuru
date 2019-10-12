@@ -44,6 +44,7 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 		return nil, gorpc.InternalError()
 	}
 
+	slogger.Info().Log("event", "get_auth_token.success")
 	return &pb.GenerateAuthTokenResponse{
 		Token: jwt,
 	}, nil
@@ -80,28 +81,9 @@ func (s *authService) verifyLoginPassword(hashedPassword, loginPassword string) 
 	return nil
 }
 
-func (s *authService) generateJWT(userId, username string) (string, error) {
-	claims := &JWTClaims{
-		UserId:   userId,
-		Username: username,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(s.jwtConfig.TTL).Unix(),
-			Issuer:    s.jwtConfig.Issuer,
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(s.jwtConfig.SecretKey))
-	if err != nil {
-		return "", fmt.Errorf("%w: %s", ErrGeneratingToken, err)
-	}
-
-	return tokenString, nil
-}
-
 func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthTokenRequest) (*pb.RefreshAuthTokenResponse, error) {
-	slogger.Info().Log("event", "refresher_auth_token.started")
-	defer slogger.Info().Log("event", "refresher_auth_token.finished")
+	slogger.Info().Log("event", "refresh_auth_token.started")
+	defer slogger.Info().Log("event", "refresh_auth_token.finished")
 
 	claims, err := s.validateToken(req.Token)
 	if err != nil {
@@ -134,5 +116,25 @@ func (s *authService) validateToken(token string) (*JWTClaims, error) {
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > refreshTime {
 		return nil, ErrRefreshRateExceeded
 	}
+
 	return &claims, nil
+}
+
+func (s *authService) generateJWT(userId, username string) (string, error) {
+	claims := &JWTClaims{
+		UserId:   userId,
+		Username: username,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(s.jwtConfig.TTL).Unix(),
+			Issuer:    s.jwtConfig.Issuer,
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(s.jwtConfig.SecretKey))
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", ErrGeneratingToken, err)
+	}
+
+	return tokenString, nil
 }

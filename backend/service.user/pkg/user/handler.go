@@ -140,13 +140,13 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 func (s *userService) validateUser(user *pb.User) error {
 	switch {
 	case user.Username == "":
-		return ErrInvalidRequestCtx("missing <username> field")
+		return ErrInvalidRequestCtx(`missing "username" field`)
 	case user.Password == "":
-		return ErrInvalidRequestCtx("missing <password> field")
+		return ErrInvalidRequestCtx(`missing "password" field`)
 	case user.Email == "":
-		return ErrInvalidRequestCtx("missing <email> field")
+		return ErrInvalidRequestCtx(`missing "email" field`)
 	case user.Name == "":
-		return ErrInvalidRequestCtx("missing <name> field")
+		return ErrInvalidRequestCtx(`missing "name" field`)
 	}
 	return nil
 }
@@ -154,7 +154,7 @@ func (s *userService) validateUser(user *pb.User) error {
 func (s *userService) hashPassword(user *pb.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("failed to hash password: %w", err)
+		return fmt.Errorf("failed to encrypt password: %w", err)
 	}
 	user.Password = string(hashedPassword)
 	return nil
