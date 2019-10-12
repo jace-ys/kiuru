@@ -1,7 +1,9 @@
 TARGET = service
 SOURCE = main.go
+PROTO = auth
+DEPENDENCIES = db.cockroach db.cockroach.sidecar db.redis
 
-.PHONY: all build run test format update clean proto
+.PHONY: all build run test format update clean proto dependencies
 
 all: format build run
 
@@ -31,4 +33,7 @@ clean:
 	go clean
 
 proto:
-	../../bin/protogen -l go -t auth -p ../../api/proto -g
+	../../bin/protogen -l go -t ${PROTO} -p ../../api/proto -g
+
+dependencies:
+	docker-compose up -d ${DEPENDENCIES}

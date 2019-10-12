@@ -18,6 +18,13 @@ service AuthService {
       body: "*"
     };
   }
+
+  rpc RevokeAuthToken(RevokeAuthTokenRequest) returns (RevokeAuthTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/login/token/revoke"
+      body: "*"
+    };
+  }
 }
 
 message GenerateAuthTokenRequest {
@@ -36,3 +43,9 @@ message RefreshAuthTokenRequest {
 message RefreshAuthTokenResponse {
   string token = 1;
 }
+
+message RevokeAuthTokenRequest {
+  string token = 1;
+}
+
+message RevokeAuthTokenResponse {}

@@ -44,3 +44,8 @@ services:
     command: db.cockroach:26257
     volumes:
       - ./databases/cockroach/sidecar:/cockroach/sidecar
+
+  db.redis:
+    image: redis:5.0-alpine
+    ports:
+      - "6379:6379"

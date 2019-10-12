@@ -10,6 +10,8 @@ exec ./service \
   --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
   --crdb-retry-count "${CRDB_RETRY_COUNT:-10}" \
   --crdb-insecure \
+  --redis-host "${REDIS_HOST:-127.0.0.1}" \
+  --redis-port "${REDIS_PORT:-6379}" \
   --token-secret "${TOKEN_SECRET:-my-secret-key}" \
   --token-issuer "${TOKEN_ISSUER:-kru.service.auth}" \
   --token-ttl "${TOKEN_TTL:-15m}"

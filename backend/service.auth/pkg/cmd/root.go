@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kru-travel/airdrop-go/pkg/crdb"
+	"github.com/kru-travel/airdrop-go/pkg/redis"
 	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"github.com/spf13/cobra"
 
@@ -17,6 +18,7 @@ type config struct {
 	server   server.GRPCServerConfig
 	gateway  server.GatewayConfig
 	database crdb.Config
+	redis    redis.Config
 	jwt      auth.JWTConfig
 }
 
@@ -28,8 +30,9 @@ func NewRootCmd() *cobra.Command {
 		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
 			crdbClient := crdb.NewCRDBClient(c.database)
+			redisClient := redis.NewRedisClient(c.redis)
 
-			authService, err := auth.NewService(crdbClient, c.jwt)
+			authService, err := auth.NewService(crdbClient, redisClient, c.jwt)
 			if err != nil {
 				exit(err)
 			}
@@ -66,13 +69,15 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().IntVar(&c.server.Port, "port", 8080, "port for the gRPC server")
 	rootCmd.PersistentFlags().StringVar(&c.server.Host, "host", "127.0.0.1", "host for the gRPC server")
 	rootCmd.PersistentFlags().IntVar(&c.gateway.Port, "gateway-port", 8081, "port for the REST gateway proxy")
-	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "127.0.0.1", "host for the CockroachDB cluster")
-	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for the CockroachDB cluster")
-	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for the CockroachDB cluster")
-	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for the CockroachDB cluster")
-	rootCmd.PersistentFlags().DurationVar(&c.database.RetryInterval, "crdb-retry-interval", 15*time.Second, "retry interval for connecting to the CockroachDB cluster")
-	rootCmd.PersistentFlags().IntVar(&c.database.RetryCount, "crdb-retry-count", 10, "max number of retries for connecting to the CockroachDB cluster")
-	rootCmd.PersistentFlags().BoolVar(&c.database.Insecure, "crdb-insecure", false, "enable insecure mode for the CockroachDB cluster")
+	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "127.0.0.1", "host for connecting to CockroachDB")
+	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for connecting to CockroachDB")
+	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for connecting to CockroachDB")
+	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for connecting to CockroachDB")
+	rootCmd.PersistentFlags().DurationVar(&c.database.RetryInterval, "crdb-retry-interval", 15*time.Second, "retry interval for connecting to CockroachDB")
+	rootCmd.PersistentFlags().IntVar(&c.database.RetryCount, "crdb-retry-count", 10, "max number of retries for connecting to CockroachDB")
+	rootCmd.PersistentFlags().BoolVar(&c.database.Insecure, "crdb-insecure", false, "enable insecure mode for connecting to CockroachDB")
+	rootCmd.PersistentFlags().StringVar(&c.redis.Host, "redis-host", "127.0.0.1", "host for connecting Redis")
+	rootCmd.PersistentFlags().IntVar(&c.redis.Port, "redis-port", 6379, "port for connecting to Redis")
 	rootCmd.PersistentFlags().StringVar(&c.jwt.SecretKey, "token-secret", "", "secret key used to sign JWTs")
 	rootCmd.PersistentFlags().StringVar(&c.jwt.Issuer, "token-issuer", "", "issuer of generated JWTs")
 	rootCmd.PersistentFlags().DurationVar(&c.jwt.TTL, "token-ttl", 15*time.Minute, "time-to-live for generated JWTs")

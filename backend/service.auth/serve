@@ -8,7 +8,9 @@ exec service \
   --crdb-user "$CRDB_USER" \
   --crdb-dbname "$CRDB_NAME" \
   --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
-  --crdb-retry-count "${CRDB_RETRY_COUNT:-10}"
-  --token-secret "${TOKEN_SECRET}" \
-  --token-issuer "${TOKEN_ISSUER}" \
+  --crdb-retry-count "${CRDB_RETRY_COUNT:-10}" \
+  --redis-host "$REDIS_HOST" \
+  --redis-port "${REDIS_PORT:-6379}" \
+  --token-secret "$TOKEN_SECRET" \
+  --token-issuer "$TOKEN_ISSUER" \
   --token-ttl "${TOKEN_TTL:-15m}"

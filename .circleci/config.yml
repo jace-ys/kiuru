@@ -26,6 +26,41 @@ jobs:
           paths:
             - ./node_modules
 
+  service.auth:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: ~/kru-travel/backend/service.auth
+    steps:
+      - checkout:
+          path: ~/kru-travel
+      - run: ~/kru-travel/.circleci/setup/protoc go
+      - restore_cache:
+          key: service.auth-cache-{{ checksum "go.sum" }}
+      - run:
+          name: install
+          command: go mod download
+      - run:
+          name: lint
+          command: |
+            if [ -n "$(gofmt -l .)" ]; then
+              exit 1
+            fi
+      - run:
+          name: verify proto
+          command: |
+            make proto
+            if [ $(git diff | wc -l) -gt 0 ]; then
+              echo "Generated code not up to date with proto schema"
+              exit 1
+            fi
+      - run:
+          name: test
+          command: make test
+      - save_cache:
+          key: service.auth-cache-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
+
   service.user:
     docker:
       - image: circleci/golang:1.13
@@ -66,4 +101,5 @@ workflows:
   kru-travel:
     jobs:
       - client.web
+      - service.auth
       - service.user
