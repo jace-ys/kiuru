@@ -21,6 +21,11 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 	slogger.Info().Log("event", "get_auth_token.started")
 	defer slogger.Info().Log("event", "get_auth_token.finished")
 
+	err := s.validateLoginPayload(req)
+	if err != nil {
+		return nil, gorpc.Error(codes.NotFound, err)
+	}
+
 	userId, hashedPassword, err := s.getLoginUser(ctx, req.Username)
 	if err != nil {
 		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
@@ -48,6 +53,16 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 	return &pb.GenerateAuthTokenResponse{
 		Token: jwt,
 	}, nil
+}
+
+func (s *authService) validateLoginPayload(login *pb.GenerateAuthTokenRequest) error {
+	switch {
+	case login.Username == "":
+		return ErrInvalidRequestCtx(`missing "username" field`)
+	case login.Password == "":
+		return ErrInvalidRequestCtx(`missing "password" field`)
+	}
+	return nil
 }
 
 func (s *authService) getLoginUser(ctx context.Context, username string) (string, string, error) {
