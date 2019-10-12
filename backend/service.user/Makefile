@@ -1,4 +1,4 @@
-TARGET = main
+TARGET = service
 SOURCE = main.go
 
 .PHONY: all build run test format update clean proto

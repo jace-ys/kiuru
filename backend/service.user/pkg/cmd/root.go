@@ -19,23 +19,20 @@ type config struct {
 	database crdb.Config
 }
 
-func NewCmd() *cobra.Command {
+func NewRootCmd() *cobra.Command {
 	var c config
 
 	rootCmd := &cobra.Command{
 		Use:   "service",
 		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
-			crdbClient, err := crdb.NewCrdbClient(c.database)
-			if err != nil {
-				exit(err)
-			}
+			crdbClient := crdb.NewCRDBClient(c.database)
 
-			userService, err := user.NewService()
+			userService, err := user.NewService(crdbClient)
 			if err != nil {
 				exit(err)
 			}
-			if err := userService.Init(crdbClient); err != nil {
+			if err := userService.Init(); err != nil {
 				exit(err)
 			}
 			defer userService.Teardown()
@@ -70,7 +67,7 @@ func NewCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "127.0.0.1", "host for the CockroachDB cluster")
 	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for the CockroachDB cluster")
 	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for the CockroachDB cluster")
-	rootCmd.PersistentFlags().StringVar(&c.database.DbName, "crdb-dbname", "", "database name for the CockroachDB cluster")
+	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for the CockroachDB cluster")
 	rootCmd.PersistentFlags().DurationVar(&c.database.RetryInterval, "crdb-retry-interval", 15*time.Second, "retry interval for connecting to the CockroachDB cluster")
 	rootCmd.PersistentFlags().IntVar(&c.database.RetryCount, "crdb-retry-count", 10, "max number of retries for connecting to the CockroachDB cluster")
 	rootCmd.PersistentFlags().BoolVar(&c.database.Insecure, "crdb-insecure", false, "enable insecure mode for the CockroachDB cluster")

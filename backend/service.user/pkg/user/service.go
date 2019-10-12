@@ -8,7 +8,8 @@ import (
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
 
-type DbClient interface {
+type DBClient interface {
+	Connect() error
 	Transact(ctx context.Context, fn func(*sqlx.Tx) error) error
 	Close() error
 }
@@ -20,15 +21,19 @@ type Server interface {
 }
 
 type userService struct {
-	db DbClient
+	db DBClient
 }
 
-func NewService() (*userService, error) {
-	return &userService{}, nil
+func NewService(dbClient DBClient) (*userService, error) {
+	return &userService{
+		db: dbClient,
+	}, nil
 }
 
-func (s *userService) Init(dbClient DbClient) error {
-	s.db = dbClient
+func (s *userService) Init() error {
+	if err := s.db.Connect(); err != nil {
+		return err
+	}
 	return nil
 }
 

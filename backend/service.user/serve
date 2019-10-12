@@ -1,6 +1,6 @@
 #!/bin/sh
 
-exec ./main \
+exec service \
   --port "$PORT" \
   --gateway-port "$GATEWAY_PORT" \
   --crdb-host "$CRDB_HOST" \

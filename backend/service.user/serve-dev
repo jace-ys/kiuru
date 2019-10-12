@@ -1,6 +1,6 @@
 #!/bin/sh
 
-exec ./main \
+exec ./service \
   --port "${PORT:-8080}" \
   --gateway-port "${GATEWAY_PORT:-8081}" \
   --crdb-host "${CRDB_HOST:-127.0.0.1}" \
