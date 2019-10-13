@@ -6,8 +6,9 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/grpc-ecosystem/grpc-gateway v1.11.3
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/kru-travel/airdrop-go v0.0.0-20191011005432-4e1d40d1f80f
+	github.com/kru-travel/airdrop-go v0.0.0-20191013104648-07a437216687
 	github.com/lib/pq v1.2.0
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/crypto v0.0.0-20191010185427-af544f31c8ac
 	google.golang.org/genproto v0.0.0-20191009194640-548a555dbc03

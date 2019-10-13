@@ -9,21 +9,20 @@ import (
 )
 
 var (
-	ErrUserNotFound   = errors.New("requested user not found")
-	ErrUserExists     = errors.New("account already exists")
+	ErrUserNotFound = errors.New("requested user not found")
+	ErrUserExists   = errors.New("account already exists")
+
+	ErrHashingPssword = errors.New("failed to encrypt password")
+
 	ErrInvalidRequest = errors.New("invalid request")
 	ErrUnknown        = errors.New("unknown error")
 )
 
-func ErrUserExistsCtx(pqErr *pq.Error) error {
+func ErrUserExistsContext(pqErr *pq.Error) error {
 	duplicateKeyRegex := regexp.MustCompile(`duplicate key value \((\w+)\)`)
 	match := duplicateKeyRegex.FindStringSubmatch(pqErr.Error())
 	if len(match) != 2 {
-		return fmt.Errorf("%w: %w", ErrUnknown, pqErr)
+		return pqErr
 	}
-	return fmt.Errorf("%w: %s taken", ErrUserExists, match[1])
-}
-
-func ErrInvalidRequestCtx(errCtx string) error {
-	return fmt.Errorf("%w: %s", ErrInvalidRequest, errCtx)
+	return fmt.Errorf("%w: %s unavailable", ErrUserExists, match[1])
 }

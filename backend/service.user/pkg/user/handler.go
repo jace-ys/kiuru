@@ -23,7 +23,7 @@ func (s *userService) GetAllUsers(ctx context.Context, req *pb.GetAllUsersReques
 	users, err := s.getAllUsers(ctx)
 	if err != nil {
 		slogger.Error().Log("event", "get_all_users.failed", "msg", err)
-		return nil, gorpc.InternalError()
+		return nil, gorpc.Error(err)
 	}
 
 	slogger.Info().Log("event", "get_all_users.success")
@@ -54,27 +54,22 @@ func (s *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 		return rows.Err()
 	})
 	if err != nil {
-		return nil, err
+		return nil, gorpc.NewErr(codes.Internal, err)
 	}
 	return users, nil
 }
 
 func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
-	slogger.Info().Log("event", "get_user.started", "user_id", req.Id)
-	defer slogger.Info().Log("event", "get_user.finished", "user_id", req.Id)
+	slogger.Info().Log("event", "get_user.started")
+	defer slogger.Info().Log("event", "get_user.finished")
 
 	user, err := s.getUser(ctx, req.Id)
 	if err != nil {
-		slogger.Error().Log("event", "get_user.failed", "user_id", req.Id, "msg", err)
-		switch {
-		case errors.Is(err, ErrUserNotFound):
-			return nil, gorpc.Error(codes.NotFound, err)
-		default:
-			return nil, gorpc.InternalError()
-		}
+		slogger.Error().Log("event", "get_user.failed", "msg", err)
+		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "get_user.success", "user_id", req.Id)
+	slogger.Info().Log("event", "get_user.success")
 	return &pb.GetUserResponse{
 		User: user,
 	}, nil
@@ -99,7 +94,12 @@ func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			return nil, gorpc.NewErr(codes.NotFound, err)
+		default:
+			return nil, gorpc.NewErr(codes.Internal, err)
+		}
 	}
 	return &user, nil
 }
@@ -108,45 +108,40 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	slogger.Info().Log("event", "create_user.started")
 	defer slogger.Info().Log("event", "create_user.finished")
 
-	err := s.validateUser(req.User)
+	err := s.validateUserPayload(req.User)
 	if err != nil {
 		slogger.Error().Log("event", "create_user.failed", "msg", err)
-		return nil, gorpc.Error(codes.InvalidArgument, err)
+		return nil, gorpc.Error(err)
 	}
 
 	err = s.hashPassword(req.User)
 	if err != nil {
 		slogger.Error().Log("event", "create_user.failed", "msg", err)
-		return nil, gorpc.InternalError()
+		return nil, gorpc.Error(err)
 	}
 
 	userId, err := s.createUser(ctx, req.User)
 	if err != nil {
 		slogger.Error().Log("event", "create_user.failed", "msg", err)
-		switch {
-		case errors.Is(err, ErrUserExists):
-			return nil, gorpc.Error(codes.AlreadyExists, err)
-		default:
-			return nil, gorpc.InternalError()
-		}
+		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "create_user.success", "user_id", userId)
+	slogger.Info().Log("event", "create_user.success")
 	return &pb.CreateUserResponse{
 		Id: userId,
 	}, nil
 }
 
-func (s *userService) validateUser(user *pb.User) error {
+func (s *userService) validateUserPayload(user *pb.User) error {
 	switch {
 	case user.Username == "":
-		return ErrInvalidRequestCtx(`missing "username" field`)
+		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "username" field`))
 	case user.Password == "":
-		return ErrInvalidRequestCtx(`missing "password" field`)
+		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "password" field`))
 	case user.Email == "":
-		return ErrInvalidRequestCtx(`missing "email" field`)
+		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "email" field`))
 	case user.Name == "":
-		return ErrInvalidRequestCtx(`missing "name" field`)
+		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "name" field`))
 	}
 	return nil
 }
@@ -154,7 +149,7 @@ func (s *userService) validateUser(user *pb.User) error {
 func (s *userService) hashPassword(user *pb.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("failed to encrypt password: %w", err)
+		return gorpc.NewErr(codes.Internal, fmt.Errorf("%w: %w", ErrHashingPssword, err))
 	}
 	user.Password = string(hashedPassword)
 	return nil
@@ -177,7 +172,7 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 			var pqErr *pq.Error
 			switch {
 			case errors.As(err, &pqErr) && pqErr.Code == "23505":
-				return ErrUserExistsCtx(pqErr)
+				return ErrUserExistsContext(pqErr)
 			default:
 				return err
 			}
@@ -185,32 +180,32 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 		return nil
 	})
 	if err != nil {
-		return userId, err
+		switch {
+		case errors.Is(err, ErrUserExists):
+			return "", gorpc.NewErr(codes.AlreadyExists, err)
+		default:
+			return "", gorpc.NewErr(codes.Internal, err)
+		}
 	}
 	return userId, nil
 }
 
 func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-	slogger.Info().Log("event", "delete_user.started", "user_id", req.Id)
-	defer slogger.Info().Log("event", "delete_user.finished", "user_id", req.Id)
+	slogger.Info().Log("event", "delete_user.started")
+	defer slogger.Info().Log("event", "delete_user.finished")
 
 	err := s.deleteUser(ctx, req.Id)
 	if err != nil {
-		slogger.Error().Log("event", "delete_user.failed", "user_id", req.Id, "msg", err)
-		switch {
-		case errors.Is(err, ErrUserNotFound):
-			return nil, gorpc.Error(codes.NotFound, err)
-		default:
-			return nil, gorpc.InternalError()
-		}
+		slogger.Error().Log("event", "delete_user.failed", "msg", err)
+		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "delete_user.success", "user_id", req.Id)
+	slogger.Info().Log("event", "delete_user.success")
 	return &pb.DeleteUserResponse{}, nil
 }
 
 func (s *userService) deleteUser(ctx context.Context, userId string) error {
-	return s.db.Transact(ctx, func(tx *sqlx.Tx) error {
+	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
 		DELETE FROM users
 		WHERE id=$1
@@ -228,4 +223,13 @@ func (s *userService) deleteUser(ctx context.Context, userId string) error {
 		}
 		return nil
 	})
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			return gorpc.NewErr(codes.NotFound, err)
+		default:
+			return gorpc.NewErr(codes.Internal, err)
+		}
+	}
+	return nil
 }

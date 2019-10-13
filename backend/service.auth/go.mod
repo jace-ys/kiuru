@@ -8,7 +8,8 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/grpc-ecosystem/grpc-gateway v1.11.3
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/kru-travel/airdrop-go v0.0.0-20191012220304-02d266836c5f
+	github.com/kru-travel/airdrop-go v0.0.0-20191013104648-07a437216687
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8

@@ -35,8 +35,8 @@ github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFB
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/kru-travel/airdrop-go v0.0.0-20191012220304-02d266836c5f h1:Y8bB25OyfPhsQnN6QEhLv1UvoXO6hskIEbaU6nLgmpc=
-github.com/kru-travel/airdrop-go v0.0.0-20191012220304-02d266836c5f/go.mod h1:5QeBRKv3CgK079SUyTLubh85yp8P6eD8Yxv3aev90Gs=
+github.com/kru-travel/airdrop-go v0.0.0-20191013104648-07a437216687 h1:Bgh+JC2VviezkhfgEfBODFi3lu1lZM3PVBFpf/KdpYE=
+github.com/kru-travel/airdrop-go v0.0.0-20191013104648-07a437216687/go.mod h1:1kRQiRSrsKqmZpue29mnRKZX2CoHb/8gjuc99s24a1o=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.2.0 h1:LXpIM/LZ5xGFhOpXAQUIMM1HdyqzVYM13zNdjCEEcA0=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
