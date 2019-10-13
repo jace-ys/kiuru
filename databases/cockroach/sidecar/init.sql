@@ -4,9 +4,10 @@ CREATE DATABASE IF NOT EXISTS kru;
 
 CREATE TABLE IF NOT EXISTS kru.users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   username STRING UNIQUE,
-  password STRING,
   email STRING UNIQUE,
+  password STRING,
   name STRING
 );
 

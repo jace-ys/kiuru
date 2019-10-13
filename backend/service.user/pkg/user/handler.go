@@ -36,7 +36,7 @@ func (s *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 	var users []*pb.User
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
-		SELECT u.id, u.username, u.email, u.name
+		SELECT u.id, u.created_at, u.username, u.email, u.name
 		FROM users as u
 		`
 		rows, err := tx.QueryxContext(ctx, query)
@@ -79,7 +79,7 @@ func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 	var user pb.User
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
-		SELECT u.id, u.username, u.email, u.name
+		SELECT u.id, u.created_at, u.username, u.email, u.name
 		FROM users as u
 		WHERE id=$1
 		`
