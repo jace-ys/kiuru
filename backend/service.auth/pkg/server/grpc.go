@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"google.golang.org/grpc"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.auth/api/auth"
@@ -17,32 +16,34 @@ type GRPCServerConfig struct {
 }
 
 type grpcServer struct {
-	Server *grpc.Server
+	server *grpc.Server
+	config *GRPCServerConfig
 }
 
-func NewGRPCServer() *grpcServer {
+func NewGRPCServer(config GRPCServerConfig) *grpcServer {
 	return &grpcServer{
-		Server: grpc.NewServer(),
+		config: &config,
+		server: grpc.NewServer(),
 	}
 }
 
 func (g *grpcServer) Init(ctx context.Context, s pb.AuthServiceServer) error {
-	pb.RegisterAuthServiceServer(g.Server, s)
+	pb.RegisterAuthServiceServer(g.server, s)
 	return nil
 }
 
-func (g *grpcServer) Serve(port int) error {
-	slogger.Info().Log("event", "grpc_server.started", "port", port)
-	defer slogger.Info().Log("event", "grpc_server.stopped")
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+func (g *grpcServer) Serve() error {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", g.config.Port))
 	if err != nil {
 		return fmt.Errorf("grpc server failed to serve: %w", err)
 	}
-	return fmt.Errorf("grpc server failed to serve: %w", g.Server.Serve(lis))
+	if err := g.server.Serve(lis); err != nil {
+		return fmt.Errorf("grpc server failed to serve: %w", err)
+	}
+	return nil
 }
 
 func (g *grpcServer) Shutdown(ctx context.Context) error {
-	g.Server.GracefulStop()
+	g.server.GracefulStop()
 	return nil
 }

@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-kit/kit/log/level"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
-	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 
@@ -20,34 +20,34 @@ import (
 )
 
 func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAuthTokenRequest) (*pb.GenerateAuthTokenResponse, error) {
-	slogger.Info().Log("event", "get_auth_token.started")
-	defer slogger.Info().Log("event", "get_auth_token.finished")
+	level.Info(s.logger).Log("event", "get_auth_token.started")
+	defer level.Info(s.logger).Log("event", "get_auth_token.finished")
 
 	err := s.validateLoginPayload(req)
 	if err != nil {
-		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	userId, hashedPassword, err := s.getLoginUser(ctx, req.Username)
 	if err != nil {
-		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	err = s.verifyLoginPassword(hashedPassword, req.Password)
 	if err != nil {
-		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	jwt, err := s.generateJWT(userId, req.Username)
 	if err != nil {
-		slogger.Error().Log("event", "get_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "get_auth_token.success")
+	level.Info(s.logger).Log("event", "get_auth_token.success")
 	return &pb.GenerateAuthTokenResponse{
 		Token: jwt,
 	}, nil
@@ -97,34 +97,34 @@ func (s *authService) verifyLoginPassword(hashedPassword, loginPassword string) 
 }
 
 func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthTokenRequest) (*pb.RefreshAuthTokenResponse, error) {
-	slogger.Info().Log("event", "refresh_auth_token.started")
-	defer slogger.Info().Log("event", "refresh_auth_token.finished")
+	level.Info(s.logger).Log("event", "refresh_auth_token.started")
+	defer level.Info(s.logger).Log("event", "refresh_auth_token.finished")
 
 	claims, err := s.validateToken(req.Token)
 	if err != nil {
-		slogger.Error().Log("event", "refresh_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	err = s.isRevoked(ctx, req.Token)
 	if err != nil {
-		slogger.Error().Log("event", "refresh_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	err = s.isRefreshable(claims)
 	if err != nil {
-		slogger.Error().Log("event", "refresh_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	jwt, err := s.generateJWT(claims.UserId, claims.Username)
 	if err != nil {
-		slogger.Error().Log("event", "refresh_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "refresh_auth_token.success")
+	level.Info(s.logger).Log("event", "refresh_auth_token.success")
 	return &pb.RefreshAuthTokenResponse{
 		Token: jwt,
 	}, nil
@@ -161,22 +161,22 @@ func (s *authService) isRefreshable(claims *JWTClaims) error {
 }
 
 func (s *authService) RevokeAuthToken(ctx context.Context, req *pb.RevokeAuthTokenRequest) (*pb.RevokeAuthTokenResponse, error) {
-	slogger.Info().Log("event", "revoke_auth_token.started")
-	defer slogger.Info().Log("event", "revoke_auth_token.finished")
+	level.Info(s.logger).Log("event", "revoke_auth_token.started")
+	defer level.Info(s.logger).Log("event", "revoke_auth_token.finished")
 
 	_, err := s.validateToken(req.Token)
 	if err != nil {
-		slogger.Error().Log("event", "revoke_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "revoke_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	err = s.cacheRevokedToken(ctx, req.Token)
 	if err != nil {
-		slogger.Error().Log("event", "revoke_auth_token.failed", "msg", err)
+		level.Error(s.logger).Log("event", "revoke_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "revoke_auth_token.success")
+	level.Info(s.logger).Log("event", "revoke_auth_token.success")
 	return &pb.RevokeAuthTokenResponse{}, nil
 }
 

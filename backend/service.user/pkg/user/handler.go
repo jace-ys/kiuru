@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/go-kit/kit/log/level"
 	"github.com/jmoiron/sqlx"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
-	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
@@ -17,16 +17,16 @@ import (
 )
 
 func (s *userService) GetAllUsers(ctx context.Context, req *pb.GetAllUsersRequest) (*pb.GetAllUsersResponse, error) {
-	slogger.Info().Log("event", "get_all_users.started")
-	defer slogger.Info().Log("event", "get_all_users.finished")
+	level.Info(s.logger).Log("event", "get_all_users.started")
+	defer level.Info(s.logger).Log("event", "get_all_users.finished")
 
 	users, err := s.getAllUsers(ctx)
 	if err != nil {
-		slogger.Error().Log("event", "get_all_users.failed", "msg", err)
+		level.Error(s.logger).Log("event", "get_all_users.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "get_all_users.success")
+	level.Info(s.logger).Log("event", "get_all_users.success")
 	return &pb.GetAllUsersResponse{
 		Users: users,
 	}, nil
@@ -60,16 +60,16 @@ func (s *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 }
 
 func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
-	slogger.Info().Log("event", "get_user.started")
-	defer slogger.Info().Log("event", "get_user.finished")
+	level.Info(s.logger).Log("event", "get_user.started")
+	defer level.Info(s.logger).Log("event", "get_user.finished")
 
 	user, err := s.getUser(ctx, req.Id)
 	if err != nil {
-		slogger.Error().Log("event", "get_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "get_user.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "get_user.success")
+	level.Info(s.logger).Log("event", "get_user.success")
 	return &pb.GetUserResponse{
 		User: user,
 	}, nil
@@ -85,18 +85,15 @@ func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		`
 		row := tx.QueryRowxContext(ctx, query, userId)
 		err := row.StructScan(&user)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return ErrUserNotFound
-		case err != nil:
+		if err != nil {
 			return err
 		}
 		return nil
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, ErrUserNotFound):
-			return nil, gorpc.NewErr(codes.NotFound, err)
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, gorpc.NewErr(codes.NotFound, ErrUserNotFound)
 		default:
 			return nil, gorpc.NewErr(codes.Internal, err)
 		}
@@ -105,28 +102,28 @@ func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 }
 
 func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	slogger.Info().Log("event", "create_user.started")
-	defer slogger.Info().Log("event", "create_user.finished")
+	level.Info(s.logger).Log("event", "create_user.started")
+	defer level.Info(s.logger).Log("event", "create_user.finished")
 
 	err := s.validateUserPayload(req.User)
 	if err != nil {
-		slogger.Error().Log("event", "create_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	err = s.hashPassword(req.User)
 	if err != nil {
-		slogger.Error().Log("event", "create_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
 	userId, err := s.createUser(ctx, req.User)
 	if err != nil {
-		slogger.Error().Log("event", "create_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "create_user.success")
+	level.Info(s.logger).Log("event", "create_user.success")
 	return &pb.CreateUserResponse{
 		Id: userId,
 	}, nil
@@ -169,20 +166,15 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 		}
 		err = stmt.QueryRowxContext(ctx, user).Scan(&userId)
 		if err != nil {
-			var pqErr *pq.Error
-			switch {
-			case errors.As(err, &pqErr) && pqErr.Code == "23505":
-				return ErrUserExistsContext(pqErr)
-			default:
-				return err
-			}
+			return err
 		}
 		return nil
 	})
 	if err != nil {
+		var pqErr *pq.Error
 		switch {
-		case errors.Is(err, ErrUserExists):
-			return "", gorpc.NewErr(codes.AlreadyExists, err)
+		case errors.As(err, &pqErr) && pqErr.Code == "23505":
+			return "", gorpc.NewErr(codes.AlreadyExists, ErrUserExistsContext(pqErr))
 		default:
 			return "", gorpc.NewErr(codes.Internal, err)
 		}
@@ -191,16 +183,16 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 }
 
 func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-	slogger.Info().Log("event", "delete_user.started")
-	defer slogger.Info().Log("event", "delete_user.finished")
+	level.Info(s.logger).Log("event", "delete_user.started")
+	defer level.Info(s.logger).Log("event", "delete_user.finished")
 
 	err := s.deleteUser(ctx, req.Id)
 	if err != nil {
-		slogger.Error().Log("event", "delete_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
 		return nil, gorpc.Error(err)
 	}
 
-	slogger.Info().Log("event", "delete_user.success")
+	level.Info(s.logger).Log("event", "delete_user.success")
 	return &pb.DeleteUserResponse{}, nil
 }
 
@@ -226,7 +218,7 @@ func (s *userService) deleteUser(ctx context.Context, userId string) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrUserNotFound):
-			return gorpc.NewErr(codes.NotFound, err)
+			return gorpc.NewErr(codes.NotFound, ErrUserNotFound)
 		default:
 			return gorpc.NewErr(codes.Internal, err)
 		}

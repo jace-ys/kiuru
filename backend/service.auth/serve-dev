@@ -7,9 +7,6 @@ exec ./service \
   --crdb-port "${CRDB_PORT:-26257}" \
   --crdb-user "${CRDB_USER:-kru_service}" \
   --crdb-dbname "${CRDB_NAME:-kru}" \
-  --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
-  --crdb-retry-count "${CRDB_RETRY_COUNT:-10}" \
-  --crdb-insecure \
   --redis-host "${REDIS_HOST:-127.0.0.1}" \
   --redis-port "${REDIS_PORT:-6379}" \
   --token-secret "${TOKEN_SECRET:-my-secret-key}" \

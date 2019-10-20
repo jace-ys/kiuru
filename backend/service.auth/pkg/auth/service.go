@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-kit/kit/log"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 
@@ -24,21 +25,23 @@ type RedisClient interface {
 
 type Server interface {
 	Init(ctx context.Context, server pb.AuthServiceServer) error
-	Serve(port int) error
+	Serve() error
 	Shutdown(ctx context.Context) error
 }
 
 type authService struct {
+	logger    log.Logger
 	db        DBClient
 	redis     RedisClient
 	jwtConfig JWTConfig
 }
 
-func NewService(dbClient DBClient, redisClient RedisClient, jwtConfig JWTConfig) (*authService, error) {
+func NewService(logger log.Logger, dbClient DBClient, redisClient RedisClient, jwtConfig JWTConfig) (*authService, error) {
 	if jwtConfig.SecretKey == "" {
-		return nil, fmt.Errorf("failed to create service: %w", ErrMissingSecret)
+		return nil, fmt.Errorf("could not create service: %w", ErrMissingSecret)
 	}
 	return &authService{
+		logger:    logger,
 		db:        dbClient,
 		redis:     redisClient,
 		jwtConfig: jwtConfig,
@@ -55,12 +58,15 @@ func (s *authService) Init() error {
 	return nil
 }
 
-func (s *authService) StartServer(ctx context.Context, server Server, port int) error {
+func (s *authService) StartServer(ctx context.Context, server Server) error {
 	if err := server.Init(ctx, s); err != nil {
 		return err
 	}
 	defer server.Shutdown(ctx)
-	return server.Serve(port)
+	if err := server.Serve(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *authService) Teardown() error {

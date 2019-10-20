@@ -5,14 +5,17 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/kru-travel/airdrop-go/pkg/crdb"
 	"github.com/kru-travel/airdrop-go/pkg/redis"
-	"github.com/kru-travel/airdrop-go/pkg/slogger"
 	"github.com/spf13/cobra"
 
 	"github.com/jace-ys/kru-travel/backend/service.auth/pkg/auth"
 	"github.com/jace-ys/kru-travel/backend/service.auth/pkg/server"
 )
+
+var logger log.Logger
 
 type config struct {
 	server   server.GRPCServerConfig
@@ -29,10 +32,13 @@ func NewRootCmd() *cobra.Command {
 		Use:   "service",
 		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
+			logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
+			logger = log.With(logger, "ts", log.DefaultTimestampUTC, "source", log.DefaultCaller)
+
 			crdbClient := crdb.NewCRDBClient(c.database)
 			redisClient := redis.NewRedisClient(c.redis)
 
-			authService, err := auth.NewService(crdbClient, redisClient, c.jwt)
+			authService, err := auth.NewService(logger, crdbClient, redisClient, c.jwt)
 			if err != nil {
 				exit(err)
 			}
@@ -42,19 +48,23 @@ func NewRootCmd() *cobra.Command {
 			}
 			defer authService.Teardown()
 
-			grpcServer := server.NewGRPCServer()
-			gatewayProxy := server.NewGatewayProxy(c.server.Host, c.server.Port)
+			grpcServer := server.NewGRPCServer(c.server)
+			gatewayProxy := server.NewGatewayProxy(c.gateway, c.server.Host, c.server.Port)
 
 			errChan := make(chan error)
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
 			go func(errChan chan error) {
-				errChan <- authService.StartServer(ctx, grpcServer, c.server.Port)
+				level.Info(logger).Log("event", "grpc_server.started", "port", c.server.Port)
+				defer level.Info(logger).Log("event", "grpc_server.stopped")
+				errChan <- authService.StartServer(ctx, grpcServer)
 			}(errChan)
 
 			go func(errChan chan error) {
-				errChan <- authService.StartServer(ctx, gatewayProxy, c.gateway.Port)
+				level.Info(logger).Log("event", "gateway_proxy.started", "port", c.gateway.Port)
+				defer level.Info(logger).Log("event", "gateway_proxy.stopped")
+				errChan <- authService.StartServer(ctx, gatewayProxy)
 			}(errChan)
 
 			select {
@@ -73,9 +83,6 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for connecting to CockroachDB")
 	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for connecting to CockroachDB")
 	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for connecting to CockroachDB")
-	rootCmd.PersistentFlags().DurationVar(&c.database.RetryInterval, "crdb-retry-interval", 15*time.Second, "retry interval for connecting to CockroachDB")
-	rootCmd.PersistentFlags().IntVar(&c.database.RetryCount, "crdb-retry-count", 10, "max number of retries for connecting to CockroachDB")
-	rootCmd.PersistentFlags().BoolVar(&c.database.Insecure, "crdb-insecure", false, "enable insecure mode for connecting to CockroachDB")
 	rootCmd.PersistentFlags().StringVar(&c.redis.Host, "redis-host", "127.0.0.1", "host for connecting Redis")
 	rootCmd.PersistentFlags().IntVar(&c.redis.Port, "redis-port", 6379, "port for connecting to Redis")
 	rootCmd.PersistentFlags().StringVar(&c.jwt.SecretKey, "token-secret", "", "secret key used to sign JWTs")
@@ -86,6 +93,6 @@ func NewRootCmd() *cobra.Command {
 }
 
 func exit(err error) {
-	slogger.Error().Log("event", "service.fatal", "msg", err)
+	level.Error(logger).Log("event", "service.fatal", "msg", err)
 	os.Exit(1)
 }

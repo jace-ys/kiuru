@@ -6,7 +6,4 @@ exec ./service \
   --crdb-host "${CRDB_HOST:-127.0.0.1}" \
   --crdb-port "${CRDB_PORT:-26257}" \
   --crdb-user "${CRDB_USER:-kru_service}" \
-  --crdb-dbname "${CRDB_NAME:-kru}" \
-  --crdb-retry-interval "${CRDB_RETRY_INTERVAL:-15s}" \
-  --crdb-retry-count "${CRDB_RETRY_COUNT:-10}" \
-  --crdb-insecure
+  --crdb-dbname "${CRDB_NAME:-kru}"

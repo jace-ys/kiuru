@@ -7,7 +7,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
-	"github.com/kru-travel/airdrop-go/pkg/slogger"
 
 	"google.golang.org/grpc"
 
@@ -19,21 +18,23 @@ type GatewayConfig struct {
 }
 
 type gatewayProxy struct {
-	Server       *http.Server
-	ProxyOptions *proxyOptions
+	server      *http.Server
+	config      *GatewayConfig
+	proxyConfig *proxyConfig
 }
 
-type proxyOptions struct {
+type proxyConfig struct {
 	Host string
 	Port int
 }
 
-func NewGatewayProxy(proxyHost string, proxyPort int) *gatewayProxy {
+func NewGatewayProxy(config GatewayConfig, proxyHost string, proxyPort int) *gatewayProxy {
 	return &gatewayProxy{
-		Server: &http.Server{
+		config: &config,
+		server: &http.Server{
 			Handler: runtime.NewServeMux(),
 		},
-		ProxyOptions: &proxyOptions{
+		proxyConfig: &proxyConfig{
 			Host: proxyHost,
 			Port: proxyPort,
 		},
@@ -42,23 +43,31 @@ func NewGatewayProxy(proxyHost string, proxyPort int) *gatewayProxy {
 
 func (g *gatewayProxy) Init(ctx context.Context, s gw.AuthServiceServer) error {
 	runtime.HTTPError = gorpc.GatewayHTTPError
-	proxyAddr := fmt.Sprintf("%s:%d", g.ProxyOptions.Host, g.ProxyOptions.Port)
+	proxyAddr := fmt.Sprintf("%s:%d", g.proxyConfig.Host, g.proxyConfig.Port)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	return gw.RegisterAuthServiceHandlerFromEndpoint(
+	err := gw.RegisterAuthServiceHandlerFromEndpoint(
 		ctx,
-		g.Server.Handler.(*runtime.ServeMux),
+		g.server.Handler.(*runtime.ServeMux),
 		proxyAddr,
 		opts,
 	)
+	if err != nil {
+		return fmt.Errorf("gateway proxy failed to initialize: %w", err)
+	}
+	return nil
 }
 
-func (g *gatewayProxy) Serve(port int) error {
-	g.Server.Addr = fmt.Sprintf(":%d", port)
-	slogger.Info().Log("event", "gateway_proxy.started", "port", port)
-	defer slogger.Info().Log("event", "gateway_proxy.stopped")
-	return fmt.Errorf("gateway proxy failed to serve: %w", g.Server.ListenAndServe())
+func (g *gatewayProxy) Serve() error {
+	g.server.Addr = fmt.Sprintf(":%d", g.config.Port)
+	if err := g.server.ListenAndServe(); err != nil {
+		return fmt.Errorf("gateway proxy failed to serve: %w", err)
+	}
+	return nil
 }
 
 func (g *gatewayProxy) Shutdown(ctx context.Context) error {
-	return g.Server.Shutdown(ctx)
+	if err := g.server.Shutdown(ctx); err != nil {
+		return fmt.Errorf("gateway proxy failed to shutdown: %w", err)
+	}
+	return nil
 }
