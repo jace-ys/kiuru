@@ -13,6 +13,7 @@ require (
 	github.com/kru-travel/airdrop-go v0.0.0-20191020002445-65b029b93b12
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	google.golang.org/genproto v0.0.0-20191009194640-548a555dbc03
 	google.golang.org/grpc v1.24.0
 )

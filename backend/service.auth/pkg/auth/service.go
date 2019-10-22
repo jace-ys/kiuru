@@ -62,7 +62,6 @@ func (s *authService) StartServer(ctx context.Context, server Server) error {
 	if err := server.Init(ctx, s); err != nil {
 		return err
 	}
-	defer server.Shutdown(ctx)
 	if err := server.Serve(); err != nil {
 		return err
 	}

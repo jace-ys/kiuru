@@ -10,6 +10,7 @@ import (
 	"github.com/kru-travel/airdrop-go/pkg/crdb"
 	"github.com/kru-travel/airdrop-go/pkg/redis"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/jace-ys/kru-travel/backend/service.auth/pkg/auth"
 	"github.com/jace-ys/kru-travel/backend/service.auth/pkg/server"
@@ -51,27 +52,31 @@ func NewRootCmd() *cobra.Command {
 			grpcServer := server.NewGRPCServer(c.server)
 			gatewayProxy := server.NewGatewayProxy(c.gateway, c.server.Host, c.server.Port)
 
-			errChan := make(chan error)
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			go func(errChan chan error) {
+			g, ctx := errgroup.WithContext(ctx)
+			g.Go(func() error {
 				level.Info(logger).Log("event", "grpc_server.started", "port", c.server.Port)
 				defer level.Info(logger).Log("event", "grpc_server.stopped")
-				errChan <- authService.StartServer(ctx, grpcServer)
-			}(errChan)
-
-			go func(errChan chan error) {
+				return authService.StartServer(ctx, grpcServer)
+			})
+			g.Go(func() error {
 				level.Info(logger).Log("event", "gateway_proxy.started", "port", c.gateway.Port)
 				defer level.Info(logger).Log("event", "gateway_proxy.stopped")
-				errChan <- authService.StartServer(ctx, gatewayProxy)
-			}(errChan)
+				return authService.StartServer(ctx, gatewayProxy)
+			})
+			g.Go(func() error {
+				select {
+				case <-ctx.Done():
+					grpcServer.Shutdown(ctx)
+					gatewayProxy.Shutdown(ctx)
+					return ctx.Err()
+				}
+			})
 
-			select {
-			case err := <-errChan:
+			if err := g.Wait(); err != nil {
 				exit(err)
-			case <-ctx.Done():
-				exit(ctx.Err())
 			}
 		},
 	}

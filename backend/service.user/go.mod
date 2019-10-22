@@ -13,6 +13,7 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/crypto v0.0.0-20191010185427-af544f31c8ac
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/genproto v0.0.0-20191009194640-548a555dbc03
 	google.golang.org/grpc v1.24.0
 )

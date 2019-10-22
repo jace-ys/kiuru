@@ -38,7 +38,7 @@ services:
       - "26257:26257"
       - "9000:8080"
     # volumes:
-    #   - ./databases/cockroach/cockroach-data/roach-one:/cockroach/cockroach-data
+    #   - ./databases/cockroach/.data/roach-one:/cockroach/cockroach-data
 
   db.cockroach.sidecar:
     image: cockroachdb/cockroach:v19.1.4

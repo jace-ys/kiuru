@@ -44,7 +44,6 @@ func (s *userService) StartServer(ctx context.Context, server Server) error {
 	if err := server.Init(ctx, s); err != nil {
 		return err
 	}
-	defer server.Shutdown(ctx)
 	return server.Serve()
 }
 
