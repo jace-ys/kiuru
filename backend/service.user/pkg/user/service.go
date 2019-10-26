@@ -9,6 +9,13 @@ import (
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
 
+var authenticatedMethods = map[string]bool{
+	"/user.UserService/GetAllUsers": false,
+	"/user.UserService/GetUser":     false,
+	"/user.UserService/CreateUser":  false,
+	"/user.UserService/DeleteUser":  true,
+}
+
 type DBClient interface {
 	Connect() error
 	Transact(ctx context.Context, fn func(*sqlx.Tx) error) error
@@ -22,15 +29,21 @@ type Server interface {
 }
 
 type userService struct {
-	logger log.Logger
-	db     DBClient
+	authMethods map[string]bool
+	logger      log.Logger
+	db          DBClient
 }
 
 func NewService(logger log.Logger, dbClient DBClient) (*userService, error) {
 	return &userService{
-		logger: logger,
-		db:     dbClient,
+		authMethods: authenticatedMethods,
+		logger:      logger,
+		db:          dbClient,
 	}, nil
+}
+
+func (s *userService) GetAuthenticatedMethods() map[string]bool {
+	return s.authMethods
 }
 
 func (s *userService) Init() error {

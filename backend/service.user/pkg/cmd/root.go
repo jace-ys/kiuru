@@ -6,9 +6,13 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/kru-travel/airdrop-go/pkg/authr"
 	"github.com/kru-travel/airdrop-go/pkg/crdb"
+	"github.com/kru-travel/airdrop-go/pkg/gorpc"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 
 	"github.com/jace-ys/kru-travel/backend/service.user/pkg/server"
 	"github.com/jace-ys/kru-travel/backend/service.user/pkg/user"
@@ -17,9 +21,10 @@ import (
 var logger log.Logger
 
 type config struct {
-	server   server.GRPCServerConfig
-	gateway  server.GatewayConfig
-	database crdb.Config
+	server       server.GRPCServerConfig
+	gateway      server.GatewayConfig
+	database     crdb.Config
+	jwtSecretKey string
 }
 
 func NewRootCmd() *cobra.Command {
@@ -44,7 +49,16 @@ func NewRootCmd() *cobra.Command {
 			}
 			defer userService.Teardown()
 
-			grpcServer := server.NewGRPCServer(c.server)
+			authInterceptor := gorpc.NewAuthInterceptor(
+				authr.NewJWTAuthenticator(c.jwtSecretKey),
+				userService.GetAuthenticatedMethods(),
+			)
+
+			grpcServer := server.NewGRPCServer(c.server, grpc.UnaryInterceptor(
+				middleware.ChainUnaryServer(
+					authInterceptor.AuthenticateHeader(),
+				),
+			))
 			gatewayProxy := server.NewGatewayProxy(c.gateway, c.server.Host, c.server.Port)
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -79,10 +93,11 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().IntVar(&c.server.Port, "port", 8080, "port for the gRPC server")
 	rootCmd.PersistentFlags().StringVar(&c.server.Host, "host", "127.0.0.1", "host for the gRPC server")
 	rootCmd.PersistentFlags().IntVar(&c.gateway.Port, "gateway-port", 8081, "port for the REST gateway proxy")
-	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "127.0.0.1", "host for the CockroachDB cluster")
-	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for the CockroachDB cluster")
-	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for the CockroachDB cluster")
-	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for the CockroachDB cluster")
+	rootCmd.PersistentFlags().StringVar(&c.database.Host, "crdb-host", "127.0.0.1", "host for connecting to CockroachDB")
+	rootCmd.PersistentFlags().IntVar(&c.database.Port, "crdb-port", 26257, "port for connecting to CockroachDB")
+	rootCmd.PersistentFlags().StringVar(&c.database.User, "crdb-user", "", "user for connecting to CockroachDB")
+	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for connecting to CockroachDB")
+	rootCmd.PersistentFlags().StringVar(&c.jwtSecretKey, "jwt-secret", "", "secret key used to sign JWTs")
 
 	return rootCmd
 }

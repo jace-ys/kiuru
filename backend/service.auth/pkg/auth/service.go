@@ -31,10 +31,10 @@ type Server interface {
 }
 
 type authService struct {
-	logger    log.Logger
-	db        DBClient
-	redis     RedisClient
-	jwtConfig authr.JWTConfig
+	logger log.Logger
+	db     DBClient
+	redis  RedisClient
+	jwt    authr.JWTConfig
 }
 
 func NewService(logger log.Logger, dbClient DBClient, redisClient RedisClient, jwtConfig authr.JWTConfig) (*authService, error) {
@@ -42,10 +42,10 @@ func NewService(logger log.Logger, dbClient DBClient, redisClient RedisClient, j
 		return nil, fmt.Errorf("could not create service: %w", ErrMissingSecret)
 	}
 	return &authService{
-		logger:    logger,
-		db:        dbClient,
-		redis:     redisClient,
-		jwtConfig: jwtConfig,
+		logger: logger,
+		db:     dbClient,
+		redis:  redisClient,
+		jwt:    jwtConfig,
 	}, nil
 }
 

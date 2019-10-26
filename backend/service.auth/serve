@@ -9,6 +9,6 @@ exec service \
   --crdb-dbname "$CRDB_NAME" \
   --redis-host "$REDIS_HOST" \
   --redis-port "${REDIS_PORT:-6379}" \
-  --token-secret "$TOKEN_SECRET" \
-  --token-issuer "$TOKEN_ISSUER" \
-  --token-ttl "${TOKEN_TTL:-15m}"
+  --jwt-secret "$JWT_SECRET" \
+  --jwt-issuer "$JWT_ISSUER" \
+  --jwt-ttl "${JWT_TTL:-15m}"

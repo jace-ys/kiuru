@@ -16,7 +16,7 @@ services:
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
       REDIS_HOST: db.redis
-      CRDB_PORT: 6379
+      REDIS_PORT: 6379
     ports:
       - "8001:8081"
 

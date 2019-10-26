@@ -41,7 +41,7 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 		return nil, gorpc.Error(err)
 	}
 
-	jwt, err := authr.GenerateJWT(s.jwtConfig.SecretKey, s.jwtConfig.Issuer, s.jwtConfig.TTL, userId, req.Username)
+	jwt, err := authr.GenerateJWT(s.jwt.SecretKey, s.jwt.Issuer, s.jwt.TTL, userId, req.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -100,7 +100,7 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 	level.Info(s.logger).Log("event", "refresh_auth_token.started")
 	defer level.Info(s.logger).Log("event", "refresh_auth_token.finished")
 
-	claims, err := authr.ValidateJWT(s.jwtConfig.SecretKey, req.Token)
+	claims, err := authr.ValidateJWT(s.jwt.SecretKey, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -118,7 +118,7 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 		return nil, gorpc.Error(err)
 	}
 
-	jwt, err := authr.GenerateJWT(s.jwtConfig.SecretKey, s.jwtConfig.Issuer, s.jwtConfig.TTL, claims.UserMD.Id, claims.UserMD.Username)
+	jwt, err := authr.GenerateJWT(s.jwt.SecretKey, s.jwt.Issuer, s.jwt.TTL, claims.UserMD.Id, claims.UserMD.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -153,7 +153,7 @@ func (s *authService) isRevoked(ctx context.Context, token string) error {
 }
 
 func (s *authService) isRefreshable(claims *authr.JWTClaims) error {
-	refreshTime := time.Duration(float64(s.jwtConfig.TTL/time.Millisecond)*0.1) * time.Millisecond
+	refreshTime := time.Duration(float64(s.jwt.TTL/time.Millisecond)*0.1) * time.Millisecond
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > refreshTime {
 		return gorpc.NewErr(codes.AlreadyExists, ErrRefreshRateExceeded)
 	}
@@ -164,7 +164,7 @@ func (s *authService) RevokeAuthToken(ctx context.Context, req *pb.RevokeAuthTok
 	level.Info(s.logger).Log("event", "revoke_auth_token.started")
 	defer level.Info(s.logger).Log("event", "revoke_auth_token.finished")
 
-	_, err := authr.ValidateJWT(s.jwtConfig.SecretKey, req.Token)
+	_, err := authr.ValidateJWT(s.jwt.SecretKey, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "revoke_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -181,7 +181,7 @@ func (s *authService) RevokeAuthToken(ctx context.Context, req *pb.RevokeAuthTok
 }
 
 func (s *authService) cacheRevokedToken(ctx context.Context, token string) error {
-	expiryInSeconds := strconv.Itoa(int(s.jwtConfig.TTL / time.Second))
+	expiryInSeconds := strconv.Itoa(int(s.jwt.TTL / time.Second))
 	err := s.redis.Transact(ctx, func(conn redis.Conn) error {
 		_, err := conn.Do("SET", token, "revoked", "EX", expiryInSeconds)
 		return err

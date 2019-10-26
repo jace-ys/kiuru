@@ -6,4 +6,5 @@ exec service \
   --crdb-host "$CRDB_HOST" \
   --crdb-port "${CRDB_PORT:-26257}" \
   --crdb-user "$CRDB_USER" \
-  --crdb-dbname "$CRDB_NAME"
+  --crdb-dbname "$CRDB_NAME" \
+  --jwt-secret "$JWT_SECRET"

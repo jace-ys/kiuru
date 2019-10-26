@@ -20,10 +20,10 @@ type grpcServer struct {
 	config *GRPCServerConfig
 }
 
-func NewGRPCServer(config GRPCServerConfig) *grpcServer {
+func NewGRPCServer(config GRPCServerConfig, opt ...grpc.ServerOption) *grpcServer {
 	return &grpcServer{
 		config: &config,
-		server: grpc.NewServer(),
+		server: grpc.NewServer(opt...),
 	}
 }
 

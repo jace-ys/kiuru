@@ -91,9 +91,9 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&c.database.DBName, "crdb-dbname", "", "database name for connecting to CockroachDB")
 	rootCmd.PersistentFlags().StringVar(&c.redis.Host, "redis-host", "127.0.0.1", "host for connecting Redis")
 	rootCmd.PersistentFlags().IntVar(&c.redis.Port, "redis-port", 6379, "port for connecting to Redis")
-	rootCmd.PersistentFlags().StringVar(&c.jwt.SecretKey, "token-secret", "", "secret key used to sign JWTs")
-	rootCmd.PersistentFlags().StringVar(&c.jwt.Issuer, "token-issuer", "", "issuer of generated JWTs")
-	rootCmd.PersistentFlags().DurationVar(&c.jwt.TTL, "token-ttl", 15*time.Minute, "time-to-live for generated JWTs")
+	rootCmd.PersistentFlags().StringVar(&c.jwt.SecretKey, "jwt-secret", "", "secret key used to sign JWTs")
+	rootCmd.PersistentFlags().StringVar(&c.jwt.Issuer, "jwt-issuer", "", "issuer of generated JWTs")
+	rootCmd.PersistentFlags().DurationVar(&c.jwt.TTL, "jwt-ttl", 15*time.Minute, "time-to-live for generated JWTs")
 
 	return rootCmd
 }
