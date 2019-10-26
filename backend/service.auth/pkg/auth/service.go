@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
+	"github.com/kru-travel/airdrop-go/pkg/authr"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.auth/api/auth"
 )
@@ -33,10 +34,10 @@ type authService struct {
 	logger    log.Logger
 	db        DBClient
 	redis     RedisClient
-	jwtConfig JWTConfig
+	jwtConfig authr.JWTConfig
 }
 
-func NewService(logger log.Logger, dbClient DBClient, redisClient RedisClient, jwtConfig JWTConfig) (*authService, error) {
+func NewService(logger log.Logger, dbClient DBClient, redisClient RedisClient, jwtConfig authr.JWTConfig) (*authService, error) {
 	if jwtConfig.SecretKey == "" {
 		return nil, fmt.Errorf("could not create service: %w", ErrMissingSecret)
 	}

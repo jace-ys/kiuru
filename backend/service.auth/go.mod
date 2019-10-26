@@ -10,10 +10,10 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/grpc-ecosystem/grpc-gateway v1.11.3
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/kru-travel/airdrop-go v0.0.0-20191020002445-65b029b93b12
+	github.com/kru-travel/airdrop-go v0.0.0-20191026145548-49f26f35dcb6
 	github.com/spf13/cobra v0.0.5
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	google.golang.org/genproto v0.0.0-20191009194640-548a555dbc03
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
 	google.golang.org/grpc v1.24.0
 )

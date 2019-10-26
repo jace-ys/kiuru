@@ -12,8 +12,6 @@ var (
 	ErrUserNotFound      = errors.New("requested user not found")
 	ErrIncorrectPassword = errors.New("incorrect password provided")
 
-	ErrGeneratingToken     = errors.New("failed to generate token")
-	ErrInvalidToken        = errors.New("invalid token")
 	ErrTokenRevoked        = errors.New("token has been revoked")
 	ErrRefreshRateExceeded = errors.New("refresh rate exceeded")
 	ErrRevokingToken       = errors.New("failed to revoke token")

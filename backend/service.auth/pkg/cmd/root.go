@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/kru-travel/airdrop-go/pkg/authr"
 	"github.com/kru-travel/airdrop-go/pkg/crdb"
 	"github.com/kru-travel/airdrop-go/pkg/redis"
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ type config struct {
 	gateway  server.GatewayConfig
 	database crdb.Config
 	redis    redis.Config
-	jwt      auth.JWTConfig
+	jwt      authr.JWTConfig
 }
 
 func NewRootCmd() *cobra.Command {

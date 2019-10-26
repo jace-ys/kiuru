@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
+	"github.com/kru-travel/airdrop-go/pkg/authr"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
@@ -41,7 +41,7 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 		return nil, gorpc.Error(err)
 	}
 
-	jwt, err := s.generateJWT(userId, req.Username)
+	jwt, err := authr.GenerateJWT(s.jwtConfig.SecretKey, s.jwtConfig.Issuer, s.jwtConfig.TTL, userId, req.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -100,7 +100,7 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 	level.Info(s.logger).Log("event", "refresh_auth_token.started")
 	defer level.Info(s.logger).Log("event", "refresh_auth_token.finished")
 
-	claims, err := s.validateToken(req.Token)
+	claims, err := authr.ValidateJWT(s.jwtConfig.SecretKey, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -118,7 +118,7 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 		return nil, gorpc.Error(err)
 	}
 
-	jwt, err := s.generateJWT(claims.UserId, claims.Username)
+	jwt, err := authr.GenerateJWT(s.jwtConfig.SecretKey, s.jwtConfig.Issuer, s.jwtConfig.TTL, claims.UserMD.Id, claims.UserMD.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -144,7 +144,7 @@ func (s *authService) isRevoked(ctx context.Context, token string) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrTokenRevoked):
-			return gorpc.NewErr(codes.InvalidArgument, err)
+			return gorpc.NewErr(codes.InvalidArgument, ErrTokenRevoked)
 		default:
 			return gorpc.NewErr(codes.Internal, err)
 		}
@@ -152,7 +152,7 @@ func (s *authService) isRevoked(ctx context.Context, token string) error {
 	return nil
 }
 
-func (s *authService) isRefreshable(claims *JWTClaims) error {
+func (s *authService) isRefreshable(claims *authr.JWTClaims) error {
 	refreshTime := time.Duration(float64(s.jwtConfig.TTL/time.Millisecond)*0.1) * time.Millisecond
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > refreshTime {
 		return gorpc.NewErr(codes.AlreadyExists, ErrRefreshRateExceeded)
@@ -164,7 +164,7 @@ func (s *authService) RevokeAuthToken(ctx context.Context, req *pb.RevokeAuthTok
 	level.Info(s.logger).Log("event", "revoke_auth_token.started")
 	defer level.Info(s.logger).Log("event", "revoke_auth_token.finished")
 
-	_, err := s.validateToken(req.Token)
+	_, err := authr.ValidateJWT(s.jwtConfig.SecretKey, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "revoke_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -190,34 +190,4 @@ func (s *authService) cacheRevokedToken(ctx context.Context, token string) error
 		return gorpc.NewErr(codes.Internal, err)
 	}
 	return nil
-}
-
-func (s *authService) generateJWT(userId, username string) (string, error) {
-	claims := &JWTClaims{
-		UserId:   userId,
-		Username: username,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(s.jwtConfig.TTL).Unix(),
-			Issuer:    s.jwtConfig.Issuer,
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(s.jwtConfig.SecretKey))
-	if err != nil {
-		return "", gorpc.NewErr(codes.Internal, fmt.Errorf("%w: %s", ErrGeneratingToken, err))
-	}
-
-	return tokenString, nil
-}
-
-func (s *authService) validateToken(token string) (*JWTClaims, error) {
-	var claims JWTClaims
-	jwt, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(s.jwtConfig.SecretKey), nil
-	})
-	if err != nil || !jwt.Valid {
-		return nil, gorpc.NewErr(codes.InvalidArgument, ErrInvalidToken)
-	}
-	return &claims, nil
 }
