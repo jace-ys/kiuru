@@ -13,6 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/kru-travel/airdrop-go/pkg/authr"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 
@@ -79,9 +80,12 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 		return nil
 	})
 	if err != nil {
+		var pqErr *pq.Error
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return "", "", gorpc.NewErr(codes.NotFound, ErrUserNotFound)
+		case errors.As(err, &pqErr) && pqErr.Code == "protocol_violation":
+			return "", "", gorpc.NewErr(codes.NotFound, ErrInvalidRequest)
 		default:
 			return "", "", gorpc.NewErr(codes.Internal, err)
 		}

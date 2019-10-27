@@ -91,11 +91,14 @@ func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		return nil
 	})
 	if err != nil {
+		var pqErr *pq.Error
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, gorpc.NewErr(codes.NotFound, ErrUserNotFound)
+		case errors.As(err, &pqErr) && pqErr.Code == "protocol_violation":
+			return nil, gorpc.NewErr(codes.NotFound, ErrInvalidRequest)
 		default:
-			return nil, gorpc.NewErr(codes.Internal, err)
+			return nil, gorpc.NewErr(codes.NotFound, err)
 		}
 	}
 	return &user, nil
@@ -173,7 +176,7 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 	if err != nil {
 		var pqErr *pq.Error
 		switch {
-		case errors.As(err, &pqErr) && pqErr.Code == "23505":
+		case errors.As(err, &pqErr) && pqErr.Code == "unique_violation":
 			return "", gorpc.NewErr(codes.AlreadyExists, ErrUserExistsContext(pqErr))
 		default:
 			return "", gorpc.NewErr(codes.Internal, err)
@@ -216,9 +219,12 @@ func (s *userService) deleteUser(ctx context.Context, userId string) error {
 		return nil
 	})
 	if err != nil {
+		var pqErr *pq.Error
 		switch {
 		case errors.Is(err, ErrUserNotFound):
 			return gorpc.NewErr(codes.NotFound, ErrUserNotFound)
+		case errors.As(err, &pqErr) && pqErr.Code == "protocol_violation":
+			return gorpc.NewErr(codes.NotFound, ErrInvalidRequest)
 		default:
 			return gorpc.NewErr(codes.Internal, err)
 		}
