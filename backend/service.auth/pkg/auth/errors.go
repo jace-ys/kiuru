@@ -14,7 +14,6 @@ var (
 
 	ErrTokenRevoked        = errors.New("token has been revoked")
 	ErrRefreshRateExceeded = errors.New("refresh rate exceeded")
-	ErrRevokingToken       = errors.New("failed to revoke token")
 
 	ErrInvalidRequest = errors.New("invalid request")
 	ErrUnknown        = errors.New("unknown error")

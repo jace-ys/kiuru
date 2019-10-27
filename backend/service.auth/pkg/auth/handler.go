@@ -84,8 +84,8 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return "", "", gorpc.NewErr(codes.NotFound, ErrUserNotFound)
-		case errors.As(err, &pqErr) && pqErr.Code == "protocol_violation":
-			return "", "", gorpc.NewErr(codes.NotFound, ErrInvalidRequest)
+		case errors.As(err, &pqErr) && pqErr.Code.Name() == "protocol_violation":
+			return "", "", gorpc.NewErr(codes.NotFound, ErrUserNotFound)
 		default:
 			return "", "", gorpc.NewErr(codes.Internal, err)
 		}
@@ -95,7 +95,7 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 
 func (s *authService) verifyLoginPassword(hashedPassword, loginPassword string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(loginPassword)); err != nil {
-		return gorpc.NewErr(codes.InvalidArgument, ErrIncorrectPassword)
+		return gorpc.NewErr(codes.Unauthenticated, ErrIncorrectPassword)
 	}
 	return nil
 }
@@ -148,7 +148,7 @@ func (s *authService) isRevoked(ctx context.Context, token string) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrTokenRevoked):
-			return gorpc.NewErr(codes.InvalidArgument, ErrTokenRevoked)
+			return gorpc.NewErr(codes.Unauthenticated, ErrTokenRevoked)
 		default:
 			return gorpc.NewErr(codes.Internal, err)
 		}
@@ -159,7 +159,7 @@ func (s *authService) isRevoked(ctx context.Context, token string) error {
 func (s *authService) isRefreshable(claims *authr.JWTClaims) error {
 	refreshTime := time.Duration(float64(s.jwt.TTL/time.Millisecond)*0.1) * time.Millisecond
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > refreshTime {
-		return gorpc.NewErr(codes.AlreadyExists, ErrRefreshRateExceeded)
+		return gorpc.NewErr(codes.ResourceExhausted, ErrRefreshRateExceeded)
 	}
 	return nil
 }
