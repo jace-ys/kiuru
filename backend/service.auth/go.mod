@@ -9,7 +9,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/grpc-ecosystem/grpc-gateway v1.11.3
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/kru-travel/airdrop-go v0.0.0-20191026163650-74b007e934e8
+	github.com/kru-travel/airdrop-go v0.0.0-20191027211108-1a3c82d9dfc3
 	github.com/lib/pq v1.2.0
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2

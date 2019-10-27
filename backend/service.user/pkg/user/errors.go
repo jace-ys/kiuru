@@ -14,8 +14,9 @@ var (
 
 	ErrHashingPssword = errors.New("failed to encrypt password")
 
-	ErrInvalidRequest = errors.New("invalid request")
-	ErrUnknown        = errors.New("unknown error")
+	ErrPermissionDenied = errors.New("permission denied")
+	ErrInvalidRequest   = errors.New("invalid request")
+	ErrUnknown          = errors.New("unknown error")
 )
 
 func ErrUserExistsContext(pqErr *pq.Error) error {

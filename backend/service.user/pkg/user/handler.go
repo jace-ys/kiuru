@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
+	"github.com/jace-ys/kru-travel/backend/service.user/pkg/permissions"
 )
 
 func (s *userService) GetAllUsers(ctx context.Context, req *pb.GetAllUsersRequest) (*pb.GetAllUsersResponse, error) {
@@ -189,7 +190,13 @@ func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 	level.Info(s.logger).Log("event", "delete_user.started")
 	defer level.Info(s.logger).Log("event", "delete_user.finished")
 
-	err := s.deleteUser(ctx, req.Id)
+	err := s.verifyPermissions(ctx, permissions.UserScope, req.Id)
+	if err != nil {
+		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
+		return nil, gorpc.Error(err)
+	}
+
+	err = s.deleteUser(ctx, req.Id)
 	if err != nil {
 		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
 		return nil, gorpc.Error(err)
@@ -229,5 +236,18 @@ func (s *userService) deleteUser(ctx context.Context, userId string) error {
 			return gorpc.NewErr(codes.Internal, err)
 		}
 	}
+	return nil
+}
+
+func (s *userService) verifyPermissions(ctx context.Context, scopeFunc permissions.ScopeFunc, userId string) error {
+	userMD, err := gorpc.GetUserMD(ctx)
+	if err != nil {
+		return gorpc.NewErr(codes.Internal, err)
+	}
+
+	if !scopeFunc(userMD, userId) {
+		return gorpc.NewErr(codes.PermissionDenied, ErrPermissionDenied)
+	}
+
 	return nil
 }
