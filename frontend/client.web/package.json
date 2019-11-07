@@ -1,16 +1,21 @@
 {
   "name": "client.web",
-  "version": "0.1.0",
+  "description": "Kru Travel",
+  "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@types/jest": "24.0.18",
-    "@types/node": "12.7.2",
-    "@types/react": "16.9.2",
-    "@types/react-dom": "16.9.0",
-    "react": "^16.9.0",
-    "react-dom": "^16.9.0",
-    "react-scripts": "3.1.1",
-    "typescript": "3.5.3"
+    "@material-ui/core": "^4.5.2",
+    "@material-ui/icons": "^4.5.1",
+    "@types/jest": "24.0.21",
+    "@types/node": "12.12.3",
+    "@types/react": "16.9.11",
+    "@types/react-dom": "16.9.3",
+    "@types/react-router-dom": "^5.1.2",
+    "react": "^16.11.0",
+    "react-dom": "^16.11.0",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "3.2.0",
+    "typescript": "3.7.2"
   },
   "scripts": {
     "start": "react-scripts start",
