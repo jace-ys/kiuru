@@ -4,10 +4,10 @@ import { Link } from "react-router-dom";
 import { BottomNavigation, BottomNavigationAction } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import {
-  StarRounded,
-  PeopleAltRounded,
+  AccountCircleRounded,
   NotificationsRounded,
-  AccountCircleRounded
+  PeopleAltRounded,
+  StarRounded
 } from "@material-ui/icons";
 
 const useStyles = makeStyles({
@@ -31,38 +31,36 @@ const BottomNav: React.FC = () => {
   };
 
   return (
-    <div className="BottomNav">
-      <BottomNavigation
-        className={classes.root}
-        value={value}
-        onChange={handleChange}
-      >
-        <BottomNavigationAction
-          component={Link}
-          to="/discover"
-          value="discover"
-          icon={<StarRounded />}
-        />
-        <BottomNavigationAction
-          component={Link}
-          to="/connect"
-          value="connect"
-          icon={<PeopleAltRounded />}
-        />
-        <BottomNavigationAction
-          component={Link}
-          to="/notifications"
-          value="notifications"
-          icon={<NotificationsRounded />}
-        />
-        <BottomNavigationAction
-          component={Link}
-          to="/profile"
-          value="profile"
-          icon={<AccountCircleRounded />}
-        />
-      </BottomNavigation>
-    </div>
+    <BottomNavigation
+      value={value}
+      onChange={handleChange}
+      className={classes.root}
+    >
+      <BottomNavigationAction
+        component={Link}
+        to="/discover"
+        value="discover"
+        icon={<StarRounded />}
+      />
+      <BottomNavigationAction
+        component={Link}
+        to="/connect"
+        value="connect"
+        icon={<PeopleAltRounded />}
+      />
+      <BottomNavigationAction
+        component={Link}
+        to="/notifications"
+        value="notifications"
+        icon={<NotificationsRounded />}
+      />
+      <BottomNavigationAction
+        component={Link}
+        to="/profile"
+        value="profile"
+        icon={<AccountCircleRounded />}
+      />
+    </BottomNavigation>
   );
 };
 

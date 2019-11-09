@@ -23,13 +23,11 @@ const TopNav: React.FC<Props> = props => {
   const classes = useStyles();
 
   return (
-    <div className="TopNav">
-      <AppBar position="static" className={classes.root}>
-        <Toolbar>
-          <Typography variant="h5">{props.title}</Typography>
-        </Toolbar>
-      </AppBar>
-    </div>
+    <AppBar position="static" className={classes.root}>
+      <Toolbar>
+        <Typography variant="h5">{props.title}</Typography>
+      </Toolbar>
+    </AppBar>
   );
 };
 

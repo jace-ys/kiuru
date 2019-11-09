@@ -1,11 +1,9 @@
 import React from "react";
 
+import { Typography } from "@material-ui/core";
+
 const NotFound: React.FC = () => {
-  return (
-    <div className="NotFound">
-      <p>Page Not Found</p>
-    </div>
-  );
+  return <Typography>Not Found</Typography>;
 };
 
 export default NotFound;
