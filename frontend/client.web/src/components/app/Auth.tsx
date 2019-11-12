@@ -1,7 +1,10 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 
 import { Button, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+
+import { login } from "../../store/ducks/auth";
 
 const useStyles = makeStyles({
   root: {
@@ -9,14 +12,9 @@ const useStyles = makeStyles({
   }
 });
 
-interface Props {
-  loggedIn: boolean;
-  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const Auth: React.FC<Props> = props => {
+const Auth: React.FC = () => {
   const classes = useStyles();
-  const { loggedIn, setLoggedIn } = props;
+  const dispatch = useDispatch();
 
   return (
     <Grid
@@ -26,7 +24,7 @@ const Auth: React.FC<Props> = props => {
       className={classes.root}
     >
       <Typography>Auth</Typography>
-      <Button onClick={() => setLoggedIn(!loggedIn)}>Login</Button>
+      <Button onClick={() => dispatch(login())}>Login</Button>
     </Grid>
   );
 };

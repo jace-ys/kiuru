@@ -1,19 +1,17 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 
 import { Button, Grid, Typography } from "@material-ui/core";
 
-interface Props {
-  loggedIn: boolean;
-  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-}
+import { login } from "../../store/ducks/auth";
 
-const Login: React.FC<Props> = props => {
-  const { loggedIn, setLoggedIn } = props;
+const Login: React.FC = () => {
+  const dispatch = useDispatch();
 
   return (
     <Grid container justify="center" alignItems="center">
       <Typography>Login</Typography>
-      <Button onClick={() => setLoggedIn(!loggedIn)}>Login</Button>
+      <Button onClick={() => dispatch(login())}>Login</Button>
     </Grid>
   );
 };

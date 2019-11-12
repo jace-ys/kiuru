@@ -1,22 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
+import { useSelector } from "react-redux";
+
+import { Hidden } from "@material-ui/core";
 
 import Auth from "./Auth";
 import BottomNav from "./BottomNav";
-import TopNav from "./TopNav";
+
+import { RootState } from "../../store";
 
 const Base: React.FC = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const loggedIn = useSelector<RootState, boolean>(
+    state => state.auth.loggedIn
+  );
 
   return (
-    <div>
-      {!loggedIn && <Auth loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
-      {loggedIn && (
-        <div>
-          <TopNav title="Discover" />
-          <BottomNav />
-        </div>
-      )}
-    </div>
+    <Hidden smUp>
+      {!loggedIn && <Auth />}
+      {loggedIn && <BottomNav />}
+    </Hidden>
   );
 };
 

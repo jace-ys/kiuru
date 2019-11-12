@@ -1,14 +1,14 @@
 import React from "react";
 
+import { Hidden } from "@material-ui/core";
+
 import TopNav from "./TopNav";
 
 const Base: React.FC = () => {
-  const loggedIn = false;
-
   return (
-    <div>
-      <TopNav loggedIn={loggedIn} />
-    </div>
+    <Hidden xsDown>
+      <TopNav />
+    </Hidden>
   );
 };
 

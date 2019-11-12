@@ -1,9 +1,13 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
+import { Grid, Typography } from "@material-ui/core";
 
 const NotFound: React.FC = () => {
-  return <Typography>Not Found</Typography>;
+  return (
+    <Grid container justify="center" alignItems="center">
+      <Typography>Not Found</Typography>
+    </Grid>
+  );
 };
 
 export default NotFound;

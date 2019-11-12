@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 
 import { AppBar, Toolbar, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+
+import { RootState } from "../../store";
+import { logout } from "../../store/ducks/auth";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -37,18 +41,14 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-interface Props {
-  loggedIn: boolean;
-}
-
-const TopNav: React.FC<Props> = props => {
+const TopNav: React.FC = () => {
   const classes = useStyles();
 
   return (
     <AppBar position="static" color="secondary" className={classes.root}>
       <Toolbar>
         <TopNavIcon />
-        <TopNavMenu loggedIn={props.loggedIn} />
+        <TopNavMenu />
       </Toolbar>
     </AppBar>
   );
@@ -66,9 +66,12 @@ const TopNavIcon: React.FC = () => {
   );
 };
 
-const TopNavMenu: React.FC<Props> = props => {
+const TopNavMenu: React.FC = () => {
   const classes = useStyles();
-  const loggedIn = props.loggedIn;
+  const loggedIn = useSelector<RootState, boolean>(
+    state => state.auth.loggedIn
+  );
+  const dispatch = useDispatch();
 
   return (
     <ul className={classes.menu}>
@@ -89,7 +92,7 @@ const TopNavMenu: React.FC<Props> = props => {
       {loggedIn && (
         <div>
           <li>
-            <Link to="/logout">
+            <Link to="/" onClick={() => dispatch(logout())}>
               <Typography variant="h6">Logout</Typography>
             </Link>
           </li>
