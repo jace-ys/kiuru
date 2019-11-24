@@ -40,12 +40,12 @@ services:
     # volumes:
     #   - ./databases/cockroach/.data/roach-one:/cockroach/cockroach-data
 
-  db.cockroach.sidecar:
+  db.cockroach.init:
     image: cockroachdb/cockroach:v19.1.4
-    entrypoint: /cockroach/sidecar/init-db
+    entrypoint: /cockroach/init/init-db
     command: db.cockroach:26257
     volumes:
-      - ./databases/cockroach/sidecar:/cockroach/sidecar
+      - ./databases/cockroach/init:/cockroach/init
 
   db.redis:
     image: redis:5.0-alpine

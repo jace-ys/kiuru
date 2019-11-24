@@ -1,7 +1,7 @@
 TARGET = service
 SOURCE = main.go
 PROTO = user
-DEPENDENCIES = db.cockroach db.cockroach.sidecar db.redis
+DEPENDENCIES = db.cockroach db.cockroach.init db.redis
 
 .PHONY: all build run test format update clean proto dependencies
 
