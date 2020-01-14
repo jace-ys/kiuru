@@ -34,6 +34,9 @@ func NewRootCmd() *cobra.Command {
 		Use:   "service",
 		Short: "Start the service",
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
 			logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
 			logger = log.With(logger, "ts", log.DefaultTimestampUTC, "source", log.DefaultCaller)
 
@@ -60,9 +63,6 @@ func NewRootCmd() *cobra.Command {
 				),
 			))
 			gatewayProxy := server.NewGatewayProxy(c.gateway, c.server.Host, c.server.Port)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
 
 			g, ctx := errgroup.WithContext(ctx)
 			g.Go(func() error {

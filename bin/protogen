@@ -24,28 +24,30 @@ while getopts "l:p:t:g" opt; do
 done
 
 if [ "$LANG" = "" ] || [ "$PROTOPATH" = "" ] || [ "$TARGETS" = "" ]; then
-  echo "Usage: protogen [-l] [-d] [-t]"
+  echo "Usage: protogen [-l] [language] [-p] [path to proto folder] [-t] [space-separated targets] [-g]"
   exit 1
 fi
 
-IFS=','
-read -ra ADDR <<< "$TARGETS"
-for target in "${ADDR[@]}"; do
-  mkdir -p api/${target}
+IFS=' ' read -ra T <<< ${TARGETS}
+for target in "${T[@]}"; do
+  version=${target%%/*}
+  outdir=api/${target##*/}
+
+  mkdir -p ${outdir}
   protoc \
-    -I${PROTOPATH} \
+    -I${PROTOPATH}/${version} \
     -I${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-    --${LANG}_out=plugins=grpc:api/${target} \
+    --${LANG}_out=plugins=grpc:${outdir} \
     ${PROTOPATH}/${target}.proto
-  echo "==> Generated gRPC stub from ${target}.proto"
+  echo "==> Generated gRPC protobuf definitions from ${target}.proto"
 
   if [ "$GATEWAY" = true ]; then
     protoc \
       -I/usr/local/include \
-      -I${PROTOPATH} \
+      -I${PROTOPATH}/${version} \
       -I${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-      --grpc-gateway_out=logtostderr=true:api/${target} \
+      --grpc-gateway_out=logtostderr=true:${outdir} \
       ${PROTOPATH}/${target}.proto
-      echo "==> Generated gateway stub from ${target}.proto"
+    echo "==> Generated gateway protobuf definitions from ${target}.proto"
   fi
 done
