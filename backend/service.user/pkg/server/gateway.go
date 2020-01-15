@@ -15,8 +15,7 @@ import (
 
 type GatewayConfig struct {
 	Port     int
-	GRPCHost string
-	GRPCPort int
+	Endpoint string
 }
 
 type gatewayProxy struct {
@@ -24,9 +23,7 @@ type gatewayProxy struct {
 	config *GatewayConfig
 }
 
-func NewGatewayProxy(config GatewayConfig, grpcHost string, grpcPort int) *gatewayProxy {
-	config.GRPCHost = grpcHost
-	config.GRPCPort = grpcPort
+func NewGatewayProxy(config GatewayConfig) *gatewayProxy {
 	return &gatewayProxy{
 		config: &config,
 		server: &http.Server{
@@ -41,7 +38,7 @@ func (g *gatewayProxy) Init(ctx context.Context, s gw.UserServiceServer) error {
 	err := gw.RegisterUserServiceHandlerFromEndpoint(
 		ctx,
 		g.server.Handler.(*runtime.ServeMux),
-		fmt.Sprintf("%s:%d", g.config.GRPCHost, g.config.GRPCPort),
+		g.config.Endpoint,
 		opts,
 	)
 	if err != nil {

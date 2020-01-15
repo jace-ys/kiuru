@@ -14,41 +14,31 @@ import (
 )
 
 type GatewayConfig struct {
-	Port int
+	Port     int
+	Endpoint string
 }
 
 type gatewayProxy struct {
-	server      *http.Server
-	config      *GatewayConfig
-	proxyConfig *proxyConfig
+	server *http.Server
+	config *GatewayConfig
 }
 
-type proxyConfig struct {
-	Host string
-	Port int
-}
-
-func NewGatewayProxy(config GatewayConfig, proxyHost string, proxyPort int) *gatewayProxy {
+func NewGatewayProxy(config GatewayConfig) *gatewayProxy {
 	return &gatewayProxy{
 		config: &config,
 		server: &http.Server{
 			Handler: runtime.NewServeMux(),
-		},
-		proxyConfig: &proxyConfig{
-			Host: proxyHost,
-			Port: proxyPort,
 		},
 	}
 }
 
 func (g *gatewayProxy) Init(ctx context.Context, s gw.AuthServiceServer) error {
 	runtime.HTTPError = gorpc.GatewayHTTPError
-	proxyAddr := fmt.Sprintf("%s:%d", g.proxyConfig.Host, g.proxyConfig.Port)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 	err := gw.RegisterAuthServiceHandlerFromEndpoint(
 		ctx,
 		g.server.Handler.(*runtime.ServeMux),
-		proxyAddr,
+		g.config.Endpoint,
 		opts,
 	)
 	if err != nil {
