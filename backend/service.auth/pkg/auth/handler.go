@@ -5,15 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/log/level"
-	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
 	"github.com/kru-travel/airdrop-go/pkg/authr"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
-	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 
@@ -27,25 +24,30 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 	err := s.validateLoginPayload(req)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.InvalidArgument, err)
 	}
 
 	userId, hashedPassword, err := s.getLoginUser(ctx, req.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			return nil, gorpc.Error(codes.NotFound, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
 	err = s.verifyLoginPassword(hashedPassword, req.Password)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.Unauthenticated, err)
 	}
 
-	jwt, err := authr.GenerateJWT(s.jwt.SecretKey, s.jwt.Issuer, s.jwt.TTL, userId, req.Username)
+	jwt, err := s.token.GenerateToken(ctx, userId, req.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.Internal, err)
 	}
 
 	level.Info(s.logger).Log("event", "get_auth_token.success")
@@ -57,9 +59,9 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 func (s *authService) validateLoginPayload(login *pb.GenerateAuthTokenRequest) error {
 	switch {
 	case login.Username == "":
-		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "username" field`))
+		return fmt.Errorf("missing \"username\"")
 	case login.Password == "":
-		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "password" field`))
+		return fmt.Errorf("missing \"password\"")
 	}
 	return nil
 }
@@ -73,21 +75,14 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 		WHERE username=$1
 		`
 		row := tx.QueryRowxContext(ctx, query, username)
-		err := row.Scan(&userId, &hashedPassword)
-		if err != nil {
-			return err
-		}
-		return nil
+		return row.Scan(&userId, &hashedPassword)
 	})
 	if err != nil {
-		var pqErr *pq.Error
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return "", "", gorpc.NewErr(codes.NotFound, ErrUserNotFound)
-		case errors.As(err, &pqErr) && pqErr.Code.Name() == "protocol_violation":
-			return "", "", gorpc.NewErr(codes.NotFound, ErrUserNotFound)
+			return "", "", ErrUserNotFound
 		default:
-			return "", "", gorpc.NewErr(codes.Internal, err)
+			return "", "", err
 		}
 	}
 	return userId, hashedPassword, nil
@@ -95,7 +90,7 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 
 func (s *authService) verifyLoginPassword(hashedPassword, loginPassword string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(loginPassword)); err != nil {
-		return gorpc.NewErr(codes.Unauthenticated, ErrIncorrectPassword)
+		return ErrIncorrectPassword
 	}
 	return nil
 }
@@ -104,28 +99,44 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 	level.Info(s.logger).Log("event", "refresh_auth_token.started")
 	defer level.Info(s.logger).Log("event", "refresh_auth_token.finished")
 
-	claims, err := authr.ValidateJWT(s.jwt.SecretKey, req.Token)
+	claims, err := s.token.ValidateToken(ctx, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, authr.ErrTokenInvalid):
+			return nil, gorpc.Error(codes.InvalidArgument, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
-	err = s.isRevoked(ctx, req.Token)
+	err = s.token.IsRevokedToken(ctx, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, authr.ErrTokenInvalid):
+			return nil, gorpc.Error(codes.InvalidArgument, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
 	err = s.isRefreshable(claims)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.ResourceExhausted, err)
 	}
 
-	jwt, err := authr.GenerateJWT(s.jwt.SecretKey, s.jwt.Issuer, s.jwt.TTL, claims.UserMD.Id, claims.UserMD.Username)
+	jwt, err := s.token.GenerateToken(ctx, claims.UserMD.Id, claims.UserMD.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.Internal, err)
+	}
+
+	err = s.token.RevokeToken(ctx, req.Token)
+	if err != nil {
+		level.Error(s.logger).Log("event", "refresh_auth_token.failed", "msg", err)
+		return nil, gorpc.Error(codes.Internal, err)
 	}
 
 	level.Info(s.logger).Log("event", "refresh_auth_token.success")
@@ -134,32 +145,11 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 	}, nil
 }
 
-func (s *authService) isRevoked(ctx context.Context, token string) error {
-	err := s.redis.Transact(ctx, func(conn redis.Conn) error {
-		reply, err := conn.Do("GET", token)
-		if err != nil {
-			return err
-		}
-		if reply != nil {
-			return ErrTokenRevoked
-		}
-		return err
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, ErrTokenRevoked):
-			return gorpc.NewErr(codes.Unauthenticated, ErrTokenRevoked)
-		default:
-			return gorpc.NewErr(codes.Internal, err)
-		}
-	}
-	return nil
-}
-
 func (s *authService) isRefreshable(claims *authr.JWTClaims) error {
-	refreshTime := time.Duration(float64(s.jwt.TTL/time.Millisecond)*0.1) * time.Millisecond
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > refreshTime {
-		return gorpc.NewErr(codes.ResourceExhausted, ErrRefreshRateExceeded)
+	ttl := claims.StandardClaims.ExpiresAt - claims.StandardClaims.IssuedAt
+	refreshTime := time.Duration(ttl)
+	if time.Unix(claims.StandardClaims.ExpiresAt, 0).Sub(time.Now()) > refreshTime {
+		return ErrRefreshRateExceeded
 	}
 	return nil
 }
@@ -168,30 +158,23 @@ func (s *authService) RevokeAuthToken(ctx context.Context, req *pb.RevokeAuthTok
 	level.Info(s.logger).Log("event", "revoke_auth_token.started")
 	defer level.Info(s.logger).Log("event", "revoke_auth_token.finished")
 
-	_, err := authr.ValidateJWT(s.jwt.SecretKey, req.Token)
+	_, err := s.token.ValidateToken(ctx, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "revoke_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, authr.ErrTokenInvalid):
+			return nil, gorpc.Error(codes.InvalidArgument, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
-	err = s.cacheRevokedToken(ctx, req.Token)
+	err = s.token.RevokeToken(ctx, req.Token)
 	if err != nil {
 		level.Error(s.logger).Log("event", "revoke_auth_token.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.Internal, err)
 	}
 
 	level.Info(s.logger).Log("event", "revoke_auth_token.success")
 	return &pb.RevokeAuthTokenResponse{}, nil
-}
-
-func (s *authService) cacheRevokedToken(ctx context.Context, token string) error {
-	expiryInSeconds := strconv.Itoa(int(s.jwt.TTL / time.Second))
-	err := s.redis.Transact(ctx, func(conn redis.Conn) error {
-		_, err := conn.Do("SET", token, "revoked", "EX", expiryInSeconds)
-		return err
-	})
-	if err != nil {
-		return gorpc.NewErr(codes.Internal, err)
-	}
-	return nil
 }

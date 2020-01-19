@@ -5,16 +5,7 @@ import (
 )
 
 var (
-	ErrMissingSecret = errors.New("secret key not provided")
-)
-
-var (
-	ErrUserNotFound      = errors.New("requested user not found")
-	ErrIncorrectPassword = errors.New("incorrect password provided")
-
-	ErrTokenRevoked        = errors.New("token has been revoked")
+	ErrUserNotFound        = errors.New("user not found")
+	ErrIncorrectPassword   = errors.New("incorrect password")
 	ErrRefreshRateExceeded = errors.New("refresh rate exceeded")
-
-	ErrInvalidRequest = errors.New("invalid request")
-	ErrUnknown        = errors.New("unknown error")
 )

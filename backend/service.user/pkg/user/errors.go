@@ -9,14 +9,9 @@ import (
 )
 
 var (
-	ErrUserNotFound = errors.New("requested user not found")
-	ErrUserExists   = errors.New("account already exists")
-
-	ErrHashingPssword = errors.New("failed to encrypt password")
-
+	ErrUserNotFound     = errors.New("user not found")
+	ErrUserExists       = errors.New("account already exists")
 	ErrPermissionDenied = errors.New("permission denied")
-	ErrInvalidRequest   = errors.New("invalid request")
-	ErrUnknown          = errors.New("unknown error")
 )
 
 func ErrUserExistsContext(pqErr *pq.Error) error {
@@ -25,5 +20,5 @@ func ErrUserExistsContext(pqErr *pq.Error) error {
 	if len(match) != 2 {
 		return pqErr
 	}
-	return fmt.Errorf("%w: %s unavailable", ErrUserExists, match[1])
+	return fmt.Errorf("%w: %s in use", ErrUserExists, match[1])
 }

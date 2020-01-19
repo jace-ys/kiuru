@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/kru-travel/airdrop-go/pkg/authr"
+	"github.com/kru-travel/airdrop-go/pkg/cache"
 	"github.com/kru-travel/airdrop-go/pkg/crdb"
 	"github.com/kru-travel/airdrop-go/pkg/redis"
 	"golang.org/x/sync/errgroup"
@@ -28,21 +29,24 @@ func main() {
 	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "source", log.DefaultCaller)
 
-	crdbClient := crdb.NewCRDBClient(c.database)
-	redisClient := redis.NewRedisClient(c.redis)
-
-	authService, err := auth.NewService(logger, crdbClient, redisClient, c.jwt)
+	crdbClient, err := crdb.NewCRDBClient(c.database.Host, c.database.Port, c.database.User, c.database.DBName)
 	if err != nil {
 		exit(err)
 	}
+	redisClient, err := redis.NewRedisClient(c.redis.Host, c.redis.Port)
+	if err != nil {
+		exit(err)
+	}
+	jwtHandler := authr.NewJWTHandler(c.jwt.Issuer, c.jwt.SecretKey, c.jwt.TTL, cache.NewRedisCache(redisClient))
 
-	if err := authService.Init(); err != nil {
+	authService, err := auth.NewService(logger, crdbClient, jwtHandler)
+	if err != nil {
 		exit(err)
 	}
 	defer authService.Teardown()
 
-	grpcServer := server.NewGRPCServer(c.server)
-	gatewayProxy := server.NewGatewayProxy(c.gateway)
+	grpcServer := server.NewGRPCServer(c.server.Host, c.server.Port)
+	gatewayProxy := server.NewGatewayProxy(c.server.Host, c.gateway.Port, c.gateway.Endpoint)
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
@@ -71,25 +75,26 @@ func main() {
 
 type config struct {
 	server   server.GRPCServerConfig
-	gateway  server.GatewayConfig
+	gateway  server.GatewayProxyConfig
 	database crdb.Config
 	redis    redis.Config
-	jwt      authr.JWTConfig
+	jwt      authr.JWTHandlerConfig
 }
 
 func parseCommand() *config {
-	c := config{}
+	var c config
+
 	kingpin.Flag("port", "port for the gRPC server").Default("8080").IntVar(&c.server.Port)
 	kingpin.Flag("host", "host for the gRPC server").Default("127.0.0.1").StringVar(&c.server.Host)
 	kingpin.Flag("gateway-port", "port for the REST gateway proxy").Default("8081").IntVar(&c.gateway.Port)
 	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1").StringVar(&c.database.Host)
 	kingpin.Flag("crdb-port", "port for connecting to CockroachDB").Default("26257").IntVar(&c.database.Port)
-	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").StringVar(&c.database.User)
-	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").StringVar(&c.database.DBName)
+	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").Default("default").StringVar(&c.database.User)
+	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").Default("defaultdb").StringVar(&c.database.DBName)
 	kingpin.Flag("redis-host", "host for connecting Redis").Default("127.0.0.1").StringVar(&c.redis.Host)
 	kingpin.Flag("redis-port", "port for connecting to Redis").Default("6379").IntVar(&c.redis.Port)
-	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").StringVar(&c.jwt.SecretKey)
-	kingpin.Flag("jwt-issuer", "issuer of generated JWTs").StringVar(&c.jwt.Issuer)
+	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").Required().StringVar(&c.jwt.SecretKey)
+	kingpin.Flag("jwt-issuer", "issuer of generated JWTs").Default("").StringVar(&c.jwt.Issuer)
 	kingpin.Flag("jwt-ttl", "time-to-live for generated JWTs").Default("15m").DurationVar(&c.jwt.TTL)
 	kingpin.Parse()
 

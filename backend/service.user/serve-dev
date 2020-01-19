@@ -6,5 +6,7 @@ exec ./service \
   --crdb-host "${CRDB_HOST:-127.0.0.1}" \
   --crdb-port "${CRDB_PORT:-26257}" \
   --crdb-user "${CRDB_USER:-kru_service}" \
-  --crdb-dbname "${CRDB_NAME:-kru}" \
+  --crdb-dbname "${CRDB_DBNAME:-kru}" \
+  --redis-host "${REDIS_HOST:-127.0.0.1}" \
+  --redis-port "${REDIS_PORT:-6379}" \
   --jwt-secret "${JWT_SECRET:-my-secret-key}"

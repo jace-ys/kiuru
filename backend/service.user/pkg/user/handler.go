@@ -24,7 +24,7 @@ func (s *userService) GetAllUsers(ctx context.Context, req *pb.GetAllUsersReques
 	users, err := s.getAllUsers(ctx)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_all_users.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.Internal, err)
 	}
 
 	level.Info(s.logger).Log("event", "get_all_users.success")
@@ -55,7 +55,7 @@ func (s *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 		return rows.Err()
 	})
 	if err != nil {
-		return nil, gorpc.NewErr(codes.Internal, err)
+		return nil, err
 	}
 	return users, nil
 }
@@ -67,7 +67,12 @@ func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 	user, err := s.getUser(ctx, req.Id)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_user.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			return nil, gorpc.Error(codes.NotFound, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
 	level.Info(s.logger).Log("event", "get_user.success")
@@ -85,21 +90,14 @@ func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		WHERE id=$1
 		`
 		row := tx.QueryRowxContext(ctx, query, userId)
-		err := row.StructScan(&user)
-		if err != nil {
-			return err
-		}
-		return nil
+		return row.StructScan(&user)
 	})
 	if err != nil {
-		var pqErr *pq.Error
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, gorpc.NewErr(codes.NotFound, ErrUserNotFound)
-		case errors.As(err, &pqErr) && pqErr.Code.Name() == "protocol_violation":
-			return nil, gorpc.NewErr(codes.NotFound, ErrUserNotFound)
+			return nil, ErrUserNotFound
 		default:
-			return nil, gorpc.NewErr(codes.Internal, err)
+			return nil, err
 		}
 	}
 	return &user, nil
@@ -112,19 +110,24 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	err := s.validateUserPayload(req.User)
 	if err != nil {
 		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.InvalidArgument, err)
 	}
 
 	err = s.hashPassword(req.User)
 	if err != nil {
 		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		return nil, gorpc.Error(codes.Internal, err)
 	}
 
 	userId, err := s.createUser(ctx, req.User)
 	if err != nil {
 		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, ErrUserExists):
+			return nil, gorpc.Error(codes.AlreadyExists, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
 	level.Info(s.logger).Log("event", "create_user.success")
@@ -136,13 +139,13 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 func (s *userService) validateUserPayload(user *pb.User) error {
 	switch {
 	case user.Username == "":
-		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "username" field`))
+		return fmt.Errorf("missing \"username\" in payload")
 	case user.Password == "":
-		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "password" field`))
+		return fmt.Errorf("missing \"password\" in payload")
 	case user.Email == "":
-		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "email" field`))
+		return fmt.Errorf("missing \"email\" in payload")
 	case user.Name == "":
-		return gorpc.NewErr(codes.InvalidArgument, fmt.Errorf("%w: %s", ErrInvalidRequest, `missing "name" field`))
+		return fmt.Errorf("missing \"name\" in payload")
 	}
 	return nil
 }
@@ -150,8 +153,9 @@ func (s *userService) validateUserPayload(user *pb.User) error {
 func (s *userService) hashPassword(user *pb.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return gorpc.NewErr(codes.Internal, fmt.Errorf("%w: %w", ErrHashingPssword, err))
+		return err
 	}
+
 	user.Password = string(hashedPassword)
 	return nil
 }
@@ -168,19 +172,15 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 		if err != nil {
 			return err
 		}
-		err = stmt.QueryRowxContext(ctx, user).Scan(&userId)
-		if err != nil {
-			return err
-		}
-		return nil
+		return stmt.QueryRowxContext(ctx, user).Scan(&userId)
 	})
 	if err != nil {
 		var pqErr *pq.Error
 		switch {
 		case errors.As(err, &pqErr) && pqErr.Code.Name() == "unique_violation":
-			return "", gorpc.NewErr(codes.AlreadyExists, ErrUserExistsContext(pqErr))
+			return "", ErrUserExistsContext(pqErr)
 		default:
-			return "", gorpc.NewErr(codes.Internal, err)
+			return "", err
 		}
 	}
 	return userId, nil
@@ -193,17 +193,40 @@ func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 	err := s.verifyPermissions(ctx, permissions.UserScope, req.Id)
 	if err != nil {
 		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, ErrPermissionDenied):
+			return nil, gorpc.Error(codes.PermissionDenied, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
 	err = s.deleteUser(ctx, req.Id)
 	if err != nil {
 		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
-		return nil, gorpc.Error(err)
+		switch {
+		case errors.Is(err, ErrUserNotFound):
+			return nil, gorpc.Error(codes.NotFound, err)
+		default:
+			return nil, gorpc.Error(codes.Internal, err)
+		}
 	}
 
 	level.Info(s.logger).Log("event", "delete_user.success")
 	return &pb.DeleteUserResponse{}, nil
+}
+
+func (s *userService) verifyPermissions(ctx context.Context, scopeFunc permissions.ScopeFunc, userId string) error {
+	userMD, err := gorpc.GetUserMD(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !scopeFunc(userMD, userId) {
+		return ErrPermissionDenied
+	}
+
+	return nil
 }
 
 func (s *userService) deleteUser(ctx context.Context, userId string) error {
@@ -226,28 +249,12 @@ func (s *userService) deleteUser(ctx context.Context, userId string) error {
 		return nil
 	})
 	if err != nil {
-		var pqErr *pq.Error
 		switch {
-		case errors.Is(err, ErrUserNotFound):
-			return gorpc.NewErr(codes.NotFound, ErrUserNotFound)
-		case errors.As(err, &pqErr) && pqErr.Code.Name() == "protocol_violation":
-			return gorpc.NewErr(codes.NotFound, ErrUserNotFound)
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrUserNotFound
 		default:
-			return gorpc.NewErr(codes.Internal, err)
+			return err
 		}
 	}
-	return nil
-}
-
-func (s *userService) verifyPermissions(ctx context.Context, scopeFunc permissions.ScopeFunc, userId string) error {
-	userMD, err := gorpc.GetUserMD(ctx)
-	if err != nil {
-		return gorpc.NewErr(codes.Internal, err)
-	}
-
-	if !scopeFunc(userMD, userId) {
-		return gorpc.NewErr(codes.PermissionDenied, ErrPermissionDenied)
-	}
-
 	return nil
 }

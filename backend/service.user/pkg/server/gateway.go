@@ -13,19 +13,24 @@ import (
 	gw "github.com/jace-ys/kru-travel/backend/service.user/api/user"
 )
 
-type GatewayConfig struct {
+type GatewayProxyConfig struct {
+	Host     string
 	Port     int
 	Endpoint string
 }
 
 type gatewayProxy struct {
+	config *GatewayProxyConfig
 	server *http.Server
-	config *GatewayConfig
 }
 
-func NewGatewayProxy(config GatewayConfig) *gatewayProxy {
+func NewGatewayProxy(host string, port int, endpoint string) *gatewayProxy {
 	return &gatewayProxy{
-		config: &config,
+		config: &GatewayProxyConfig{
+			Host:     host,
+			Port:     port,
+			Endpoint: endpoint,
+		},
 		server: &http.Server{
 			Handler: runtime.NewServeMux(),
 		},
@@ -33,7 +38,7 @@ func NewGatewayProxy(config GatewayConfig) *gatewayProxy {
 }
 
 func (g *gatewayProxy) Init(ctx context.Context, s gw.UserServiceServer) error {
-	runtime.HTTPError = gorpc.GatewayHTTPError
+	runtime.HTTPError = gorpc.HTTPError
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 	err := gw.RegisterUserServiceHandlerFromEndpoint(
 		ctx,
@@ -48,7 +53,7 @@ func (g *gatewayProxy) Init(ctx context.Context, s gw.UserServiceServer) error {
 }
 
 func (g *gatewayProxy) Serve() error {
-	g.server.Addr = fmt.Sprintf(":%d", g.config.Port)
+	g.server.Addr = fmt.Sprintf("%s:%d", g.config.Host, g.config.Port)
 	if err := g.server.ListenAndServe(); err != nil {
 		return fmt.Errorf("gateway proxy failed to serve: %w", err)
 	}

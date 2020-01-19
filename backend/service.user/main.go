@@ -10,8 +10,10 @@ import (
 	"github.com/go-kit/kit/log/level"
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/kru-travel/airdrop-go/pkg/authr"
+	"github.com/kru-travel/airdrop-go/pkg/cache"
 	"github.com/kru-travel/airdrop-go/pkg/crdb"
 	"github.com/kru-travel/airdrop-go/pkg/gorpc"
+	"github.com/kru-travel/airdrop-go/pkg/redis"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -30,29 +32,30 @@ func main() {
 	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "source", log.DefaultCaller)
 
-	crdbClient := crdb.NewCRDBClient(c.database)
+	crdbClient, err := crdb.NewCRDBClient(c.database.Host, c.database.Port, c.database.User, c.database.DBName)
+	if err != nil {
+		exit(err)
+	}
+	redisClient, err := redis.NewRedisClient(c.redis.Host, c.redis.Port)
+	if err != nil {
+		exit(err)
+	}
 
 	userService, err := user.NewService(logger, crdbClient)
 	if err != nil {
 		exit(err)
 	}
-
-	if err := userService.Init(); err != nil {
-		exit(err)
-	}
 	defer userService.Teardown()
 
 	authInterceptor := gorpc.NewAuthInterceptor(
-		authr.NewJWTAuthenticator(c.jwtSecretKey),
+		authr.NewJWTAuthenticator(c.jwtSecretKey, cache.NewRedisCache(redisClient)),
 		userService.GetAuthenticatedMethods(),
 	)
 
-	grpcServer := server.NewGRPCServer(c.server, grpc.UnaryInterceptor(
-		middleware.ChainUnaryServer(
-			authInterceptor.AuthenticateHeader(),
-		),
-	))
-	gatewayProxy := server.NewGatewayProxy(c.gateway)
+	grpcServer := server.NewGRPCServer(c.server.Host, c.server.Port, grpc.UnaryInterceptor(middleware.ChainUnaryServer(
+		authInterceptor.Authenticate(),
+	)))
+	gatewayProxy := server.NewGatewayProxy(c.server.Host, c.gateway.Port, c.gateway.Endpoint)
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
@@ -81,21 +84,25 @@ func main() {
 
 type config struct {
 	server       server.GRPCServerConfig
-	gateway      server.GatewayConfig
+	gateway      server.GatewayProxyConfig
 	database     crdb.Config
+	redis        redis.Config
 	jwtSecretKey string
 }
 
 func parseCommand() *config {
-	c := config{}
+	var c config
+
 	kingpin.Flag("port", "port for the gRPC server").Default("8080").IntVar(&c.server.Port)
 	kingpin.Flag("host", "host for the gRPC server").Default("127.0.0.1").StringVar(&c.server.Host)
 	kingpin.Flag("gateway-port", "port for the REST gateway proxy").Default("8081").IntVar(&c.gateway.Port)
 	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1").StringVar(&c.database.Host)
 	kingpin.Flag("crdb-port", "port for connecting to CockroachDB").Default("26257").IntVar(&c.database.Port)
-	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").StringVar(&c.database.User)
-	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").StringVar(&c.database.DBName)
-	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").StringVar(&c.jwtSecretKey)
+	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").Default("default").StringVar(&c.database.User)
+	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").Default("defaultdb").StringVar(&c.database.DBName)
+	kingpin.Flag("redis-host", "host for connecting Redis").Default("127.0.0.1").StringVar(&c.redis.Host)
+	kingpin.Flag("redis-port", "port for connecting to Redis").Default("6379").IntVar(&c.redis.Port)
+	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").Required().StringVar(&c.jwtSecretKey)
 	kingpin.Parse()
 
 	c.gateway.Endpoint = fmt.Sprintf("%s:%d", c.server.Host, c.server.Port)
