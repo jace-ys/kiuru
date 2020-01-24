@@ -13,33 +13,41 @@
 
 #### Development Setup:
 
+- Generate gRPC stubs from proto files
+
+```
+* Go:
+  make proto
+```
+
 - Start all containers
 
 ```
 docker-compose up
 ```
 
-- Start database containers
+- Start auxiliary containers
 
 ```
 docker-compose up -d db.cockroach db.cockroach.init db.redis
 ```
 
-- Run individual services
+- Start individual services
+
+```
+* Go:
+  make
+
+* Node:
+  npm start
+```
+
+- Test individual services
 
 ```
 * Go:
   make test
-  make
 
 * Node:
   npm test
-  npm start
-```
-
-- Generate gRPC stubs from proto files
-
-```
-* Go:
-  make proto
 ```
