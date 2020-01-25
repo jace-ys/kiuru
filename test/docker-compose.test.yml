@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+  service.auth:
+    ports:
+      - "5001:8080"
+
+  service.user:
+    ports:
+      - "5002:8080"
+
+  db.cockroach.init:
+    volumes:
+      - ./test/data/cockroach/seed.sql:/cockroach/init/seed.sql

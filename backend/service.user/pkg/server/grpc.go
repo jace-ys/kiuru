@@ -11,7 +11,6 @@ import (
 )
 
 type GRPCServerConfig struct {
-	Host string
 	Port int
 }
 
@@ -20,10 +19,9 @@ type grpcServer struct {
 	server *grpc.Server
 }
 
-func NewGRPCServer(host string, port int, opt ...grpc.ServerOption) *grpcServer {
+func NewGRPCServer(port int, opt ...grpc.ServerOption) *grpcServer {
 	return &grpcServer{
 		config: &GRPCServerConfig{
-			Host: host,
 			Port: port,
 		},
 		server: grpc.NewServer(opt...),
@@ -36,7 +34,7 @@ func (g *grpcServer) Init(ctx context.Context, s pb.UserServiceServer) error {
 }
 
 func (g *grpcServer) Serve() error {
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", g.config.Host, g.config.Port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", g.config.Port))
 	if err != nil {
 		return fmt.Errorf("grpc server failed to serve: %w", err)
 	}

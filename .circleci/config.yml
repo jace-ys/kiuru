@@ -3,7 +3,7 @@ version: 2
 jobs:
   client.web:
     docker:
-      - image: circleci/node:12.10-stretch
+      - image: circleci/node:12.14
     working_directory: ~/kru-travel/frontend/client.web
     steps:
       - checkout:
@@ -11,16 +11,16 @@ jobs:
       - restore_cache:
           key: client.web-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: install
+          name: Install dependencies
           command: npm install
       - run:
-          name: lint
+          name: Lint
           command: npm run lint
       - run:
-          name: test
+          name: Run tests
           command: npm test
       - run:
-          name: build
+          name: Build
           command: npm run build
       - save_cache:
           key: client.web-cache-{{ checksum "package-lock.json" }}
@@ -34,20 +34,13 @@ jobs:
     steps:
       - checkout:
           path: ~/kru-travel
-      - run: ~/kru-travel/.circleci/setup/protoc go
       - restore_cache:
           key: service.auth-cache-{{ checksum "go.sum" }}
       - run:
-          name: install
-          command: go mod download
+          name: Install protoc
+          command: ~/kru-travel/.circleci/setup/protoc go
       - run:
-          name: lint
-          command: |
-            if [ -n "$(gofmt -l .)" ]; then
-              exit 1
-            fi
-      - run:
-          name: verify proto
+          name: Verify proto
           command: |
             make proto
             if [ $(git diff | wc -l) -gt 0 ]; then
@@ -55,7 +48,16 @@ jobs:
               exit 1
             fi
       - run:
-          name: test
+          name: Install dependencies
+          command: go mod download
+      - run:
+          name: Lint
+          command: |
+            if [ -n "$(gofmt -l .)" ]; then
+              exit 1
+            fi
+      - run:
+          name: Run tests
           command: make test
       - save_cache:
           key: service.auth-cache-{{ checksum "go.sum" }}
@@ -69,20 +71,13 @@ jobs:
     steps:
       - checkout:
           path: ~/kru-travel
-      - run: ~/kru-travel/.circleci/setup/protoc go
       - restore_cache:
           key: service.user-cache-{{ checksum "go.sum" }}
       - run:
-          name: install
-          command: go mod download
+          name: Install protoc
+          command: ~/kru-travel/.circleci/setup/protoc go
       - run:
-          name: lint
-          command: |
-            if [ -n "$(gofmt -l .)" ]; then
-              exit 1
-            fi
-      - run:
-          name: verify proto
+          name: Verify proto
           command: |
             make proto
             if [ $(git diff | wc -l) -gt 0 ]; then
@@ -90,10 +85,64 @@ jobs:
               exit 1
             fi
       - run:
-          name: test
+          name: Install dependencies
+          command: go mod download
+      - run:
+          name: Lint
+          command: |
+            if [ -n "$(gofmt -l .)" ]; then
+              exit 1
+            fi
+      - run:
+          name: Run tests
           command: make test
       - save_cache:
           key: service.user-cache-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
+
+  test.integration:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/kru-travel/test
+    steps:
+      - checkout:
+          path: ~/kru-travel
+      - restore_cache:
+          key: test.integration-cache-{{ checksum "go.sum" }}
+      - run:
+          name: Go 1.13
+          command: |
+            sudo rm -rf /usr/local/go
+            curl -sL https://dl.google.com/go/go1.13.linux-amd64.tar.gz | sudo tar -xz -C /usr/local/
+      - run:
+          name: Install protoc
+          command: ~/kru-travel/.circleci/setup/protoc go
+      - run:
+          name: Verify proto
+          command: |
+            make proto
+            if [ $(git diff | wc -l) -gt 0 ]; then
+              echo "Generated code not up to date with proto schema"
+              exit 1
+            fi
+      - run:
+          name: Install dependencies
+          command: go mod download
+      - run:
+          name: Lint
+          command: |
+            if [ -n "$(gofmt -l .)" ]; then
+              exit 1
+            fi
+      - run:
+          name: Setup
+          command: make setup
+      - run:
+          name: Run tests
+          command: make integration
+      - save_cache:
+          key: test.integration-cache-{{ checksum "go.sum" }}
           paths:
             - /go/pkg/mod
 
@@ -104,3 +153,4 @@ workflows:
       - client.web
       - service.auth
       - service.user
+      - test.integration

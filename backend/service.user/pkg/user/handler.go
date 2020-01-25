@@ -81,7 +81,7 @@ func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 	}, nil
 }
 
-func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, error) {
+func (s *userService) getUser(ctx context.Context, userID string) (*pb.User, error) {
 	var user pb.User
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
@@ -89,7 +89,7 @@ func (s *userService) getUser(ctx context.Context, userId string) (*pb.User, err
 		FROM users as u
 		WHERE id=$1
 		`
-		row := tx.QueryRowxContext(ctx, query, userId)
+		row := tx.QueryRowxContext(ctx, query, userID)
 		return row.StructScan(&user)
 	})
 	if err != nil {
@@ -119,7 +119,7 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		return nil, gorpc.Error(codes.Internal, err)
 	}
 
-	userId, err := s.createUser(ctx, req.User)
+	userID, err := s.createUser(ctx, req.User)
 	if err != nil {
 		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
 		switch {
@@ -132,7 +132,7 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 
 	level.Info(s.logger).Log("event", "create_user.success")
 	return &pb.CreateUserResponse{
-		Id: userId,
+		Id: userID,
 	}, nil
 }
 
@@ -161,7 +161,7 @@ func (s *userService) hashPassword(user *pb.User) error {
 }
 
 func (s *userService) createUser(ctx context.Context, user *pb.User) (string, error) {
-	var userId string
+	var userID string
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
 		INSERT INTO users (username, password, email, name)
@@ -172,7 +172,7 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 		if err != nil {
 			return err
 		}
-		return stmt.QueryRowxContext(ctx, user).Scan(&userId)
+		return stmt.QueryRowxContext(ctx, user).Scan(&userID)
 	})
 	if err != nil {
 		var pqErr *pq.Error
@@ -183,7 +183,7 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 			return "", err
 		}
 	}
-	return userId, nil
+	return userID, nil
 }
 
 func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
@@ -216,26 +216,26 @@ func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 	return &pb.DeleteUserResponse{}, nil
 }
 
-func (s *userService) verifyPermissions(ctx context.Context, scopeFunc permissions.ScopeFunc, userId string) error {
+func (s *userService) verifyPermissions(ctx context.Context, scopeFunc permissions.ScopeFunc, userID string) error {
 	userMD, err := gorpc.GetUserMD(ctx)
 	if err != nil {
 		return err
 	}
 
-	if !scopeFunc(userMD, userId) {
+	if !scopeFunc(userMD, userID) {
 		return ErrPermissionDenied
 	}
 
 	return nil
 }
 
-func (s *userService) deleteUser(ctx context.Context, userId string) error {
+func (s *userService) deleteUser(ctx context.Context, userID string) error {
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
 		DELETE FROM users
 		WHERE id=$1
 		`
-		res, err := tx.ExecContext(ctx, query, userId)
+		res, err := tx.ExecContext(ctx, query, userID)
 		if err != nil {
 			return err
 		}

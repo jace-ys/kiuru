@@ -27,7 +27,7 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 		return nil, gorpc.Error(codes.InvalidArgument, err)
 	}
 
-	userId, hashedPassword, err := s.getLoginUser(ctx, req.Username)
+	userID, hashedPassword, err := s.getLoginUser(ctx, req.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		switch {
@@ -44,7 +44,7 @@ func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAut
 		return nil, gorpc.Error(codes.Unauthenticated, err)
 	}
 
-	jwt, err := s.token.GenerateToken(ctx, userId, req.Username)
+	jwt, err := s.token.GenerateToken(ctx, userID, req.Username)
 	if err != nil {
 		level.Error(s.logger).Log("event", "get_auth_token.failed", "msg", err)
 		return nil, gorpc.Error(codes.Internal, err)
@@ -67,7 +67,7 @@ func (s *authService) validateLoginPayload(login *pb.GenerateAuthTokenRequest) e
 }
 
 func (s *authService) getLoginUser(ctx context.Context, username string) (string, string, error) {
-	var userId, hashedPassword string
+	var userID, hashedPassword string
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
 		SELECT u.id, u.password
@@ -75,7 +75,7 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 		WHERE username=$1
 		`
 		row := tx.QueryRowxContext(ctx, query, username)
-		return row.Scan(&userId, &hashedPassword)
+		return row.Scan(&userID, &hashedPassword)
 	})
 	if err != nil {
 		switch {
@@ -85,7 +85,7 @@ func (s *authService) getLoginUser(ctx context.Context, username string) (string
 			return "", "", err
 		}
 	}
-	return userId, hashedPassword, nil
+	return userID, hashedPassword, nil
 }
 
 func (s *authService) verifyLoginPassword(hashedPassword, loginPassword string) error {

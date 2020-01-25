@@ -28,6 +28,8 @@ services:
     environment:
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
+      REDIS_HOST: db.redis
+      REDIS_PORT: 6379
     ports:
       - "8002:8081"
 
@@ -35,10 +37,9 @@ services:
     image: cockroachdb/cockroach:v19.1.4
     command: start --insecure
     ports:
-      - "26257:26257"
       - "9000:8080"
     # volumes:
-    #   - ./databases/cockroach/.data/roach-one:/cockroach/cockroach-data
+    #   - ./databases/cockroach/.data/roach-one:/cockroach/data
 
   db.cockroach.init:
     image: cockroachdb/cockroach:v19.1.4
@@ -49,5 +50,3 @@ services:
 
   db.redis:
     image: redis:5.0-alpine
-    ports:
-      - "6379:6379"

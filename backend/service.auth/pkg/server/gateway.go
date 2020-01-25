@@ -14,7 +14,6 @@ import (
 )
 
 type GatewayProxyConfig struct {
-	Host     string
 	Port     int
 	Endpoint string
 }
@@ -24,10 +23,9 @@ type gatewayProxy struct {
 	server *http.Server
 }
 
-func NewGatewayProxy(host string, port int, endpoint string) *gatewayProxy {
+func NewGatewayProxy(port int, endpoint string) *gatewayProxy {
 	return &gatewayProxy{
 		config: &GatewayProxyConfig{
-			Host:     host,
 			Port:     port,
 			Endpoint: endpoint,
 		},
@@ -53,7 +51,7 @@ func (g *gatewayProxy) Init(ctx context.Context, s gw.AuthServiceServer) error {
 }
 
 func (g *gatewayProxy) Serve() error {
-	g.server.Addr = fmt.Sprintf("%s:%d", g.config.Host, g.config.Port)
+	g.server.Addr = fmt.Sprintf(":%d", g.config.Port)
 	if err := g.server.ListenAndServe(); err != nil {
 		return fmt.Errorf("gateway proxy failed to serve: %w", err)
 	}

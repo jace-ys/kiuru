@@ -52,10 +52,10 @@ func main() {
 		userService.GetAuthenticatedMethods(),
 	)
 
-	grpcServer := server.NewGRPCServer(c.server.Host, c.server.Port, grpc.UnaryInterceptor(middleware.ChainUnaryServer(
+	grpcServer := server.NewGRPCServer(c.server.Port, grpc.UnaryInterceptor(middleware.ChainUnaryServer(
 		authInterceptor.Authenticate(),
 	)))
-	gatewayProxy := server.NewGatewayProxy(c.server.Host, c.gateway.Port, c.gateway.Endpoint)
+	gatewayProxy := server.NewGatewayProxy(c.gateway.Port, c.gateway.Endpoint)
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
@@ -94,7 +94,6 @@ func parseCommand() *config {
 	var c config
 
 	kingpin.Flag("port", "port for the gRPC server").Default("8080").IntVar(&c.server.Port)
-	kingpin.Flag("host", "host for the gRPC server").Default("127.0.0.1").StringVar(&c.server.Host)
 	kingpin.Flag("gateway-port", "port for the REST gateway proxy").Default("8081").IntVar(&c.gateway.Port)
 	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1").StringVar(&c.database.Host)
 	kingpin.Flag("crdb-port", "port for connecting to CockroachDB").Default("26257").IntVar(&c.database.Port)
@@ -105,7 +104,7 @@ func parseCommand() *config {
 	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").Required().StringVar(&c.jwtSecretKey)
 	kingpin.Parse()
 
-	c.gateway.Endpoint = fmt.Sprintf("%s:%d", c.server.Host, c.server.Port)
+	c.gateway.Endpoint = fmt.Sprintf(":%d", c.server.Port)
 	return &c
 }
 

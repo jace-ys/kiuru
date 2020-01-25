@@ -33,7 +33,9 @@ clean:
 	go clean
 
 proto:
+	@echo "==> Generating proto.."
 	../../bin/protogen -l go -t "${PROTO}" -p ../../api/proto -g
 
 dependencies:
+	@echo "==> Starting auxiliary containers.."
 	docker-compose up -d ${DEPENDENCIES}
