@@ -37,7 +37,7 @@ func (s *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 	var users []*pb.User
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
-		SELECT u.id, u.created_at, u.username, u.email, u.name
+		SELECT u.id, u.created_at, u.username, u.name, u.email
 		FROM users as u
 		`
 		rows, err := tx.QueryxContext(ctx, query)
@@ -85,7 +85,7 @@ func (s *userService) getUser(ctx context.Context, userID string) (*pb.User, err
 	var user pb.User
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
-		SELECT u.id, u.created_at, u.username, u.email, u.name
+		SELECT u.id, u.created_at, u.username, u.name, u.email
 		FROM users as u
 		WHERE id=$1
 		`
@@ -145,10 +145,10 @@ func (s *userService) validateUserPayload(user *pb.User) error {
 		return fmt.Errorf("missing \"username\" in payload")
 	case user.Password == "":
 		return fmt.Errorf("missing \"password\" in payload")
-	case user.Email == "":
-		return fmt.Errorf("missing \"email\" in payload")
 	case user.Name == "":
 		return fmt.Errorf("missing \"name\" in payload")
+	case user.Email == "":
+		return fmt.Errorf("missing \"email\" in payload")
 	}
 	return nil
 }
@@ -167,8 +167,8 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 	var userID string
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
-		INSERT INTO users (username, password, email, name)
-		VALUES (:username, :password, :email, :name)
+		INSERT INTO users (username, password, name, email)
+		VALUES (:username, :password, :name, :email)
 		RETURNING id
 		`
 		stmt, err := tx.PrepareNamedContext(ctx, query)

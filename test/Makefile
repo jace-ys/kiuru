@@ -1,8 +1,13 @@
 PROTO = v1/auth v1/user
 
-.PHONY: all setup integration format update clean proto
+.PHONY: all setup integration teardown format update clean proto
 
-all: integration
+all:
+	@make teardown 2>/dev/null
+	@make setup 2>/dev/null
+	@echo "==> Initialising.."
+	@sleep 3
+	@make integration
 
 setup:
 	@echo "==> Starting containers.."
@@ -11,6 +16,10 @@ setup:
 integration:
 	@echo "==> Running integration tests.."
 	go test ./integration -v
+
+teardown:
+	@echo "==> Killing containers.."
+	docker-compose down -v
 
 format:
 	@echo "==> Formatting code.."
