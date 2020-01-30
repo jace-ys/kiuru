@@ -38,7 +38,7 @@ jobs:
           key: service.auth-cache-{{ checksum "go.sum" }}
       - run:
           name: Install protoc
-          command: ~/kru-travel/.circleci/setup/protoc go
+          command: ~/kru-travel/bin/install protoc go
       - run:
           name: Verify proto
           command: |
@@ -75,7 +75,7 @@ jobs:
           key: service.user-cache-{{ checksum "go.sum" }}
       - run:
           name: Install protoc
-          command: ~/kru-travel/.circleci/setup/protoc go
+          command: ~/kru-travel/bin/install protoc go
       - run:
           name: Verify proto
           command: |
@@ -117,7 +117,7 @@ jobs:
             curl -sL https://dl.google.com/go/go1.13.linux-amd64.tar.gz | sudo tar -xz -C /usr/local/
       - run:
           name: Install protoc
-          command: ~/kru-travel/.circleci/setup/protoc go
+          command: ~/kru-travel/bin/install protoc go
       - run:
           name: Verify proto
           command: |
