@@ -1,0 +1,52 @@
+on:
+  push:
+    paths:
+      - /api/**
+      - /bin/**
+      - /frontend/**
+      - /backend/**
+      - /databases/**
+      - /test/**
+      - docker-compose.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      WORKDIR: ./test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: "1.13"
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-test.integration-${{ hashFiles('test/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-test.integration-
+      - name: Install protoc
+        run: ./bin/proto-install protoc go
+      - name: Verify proto
+        working-directory: ${{env.WORKDIR}}
+        run: |
+          make proto
+          if [ $(git diff | wc -l) -gt 0 ]; then
+            echo "Generated code not up to date with proto schema"
+            exit 1
+          fi
+      - name: Install dependencies
+        working-directory: ${{env.WORKDIR}}
+        run: go mod download
+      - name: Lint
+        working-directory: ${{env.WORKDIR}}
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            exit 1
+          fi
+      - name: Setup test environment
+        working-directory: ${{env.WORKDIR}}
+        run: make setup
+      - name: Run tests
+        working-directory: ${{env.WORKDIR}}
+        run: make integration

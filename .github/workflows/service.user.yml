@@ -1,0 +1,45 @@
+on:
+  push:
+    paths:
+      - ./api/**
+      - ./bin/**
+      - ./backend/service.auth/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      WORKDIR: ./backend/service.user
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: "1.13"
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-service.user-${{ hashFiles('backend/service.user/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-service.user-
+      - name: Install protoc
+        run: ./bin/proto-install protoc go
+      - name: Verify proto
+        working-directory: ${{env.WORKDIR}}
+        run: |
+          make proto
+          if [ $(git diff | wc -l) -gt 0 ]; then
+            echo "Generated code not up to date with proto schema"
+            exit 1
+          fi
+      - name: Install dependencies
+        working-directory: ${{env.WORKDIR}}
+        run: go mod download
+      - name: Lint
+        working-directory: ${{env.WORKDIR}}
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            exit 1
+          fi
+      - name: Run tests
+        working-directory: ${{env.WORKDIR}}
+        run: make test

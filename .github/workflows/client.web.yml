@@ -1,0 +1,33 @@
+on:
+  push:
+    paths:
+      - ./api/**
+      - ./bin/**
+      - ./frontend/client.web/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      WORKDIR: ./frontend/client.web
+      CI: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "12.14"
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-client.web-${{ hashFiles('frontend/client.web/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-client.web-
+      - name: Install dependencies
+        working-directory: ${{env.WORKDIR}}
+        run: npm install
+      - name: Lint
+        working-directory: ${{env.WORKDIR}}
+        run: npm run lint
+      - name: Run tests
+        working-directory: ${{env.WORKDIR}}
+        run: npm test

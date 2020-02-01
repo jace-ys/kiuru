@@ -34,7 +34,7 @@ clean:
 
 proto:
 	@echo "==> Generating proto.."
-	../../bin/protogen -l go -t "${PROTO}" -p ../../api/proto -g
+	../../bin/proto-gen -l go -t "${PROTO}" -p ../../api/proto -g
 
 dependencies:
 	@echo "==> Starting auxiliary containers.."

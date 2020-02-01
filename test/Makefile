@@ -36,4 +36,4 @@ clean:
 
 proto:
 	@echo "==> Generating proto.."
-	../bin/protogen -l go -t "${PROTO}" -p ../api/proto
+	../bin/proto-gen -l go -t "${PROTO}" -p ../api/proto

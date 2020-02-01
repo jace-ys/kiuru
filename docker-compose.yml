@@ -39,8 +39,6 @@ services:
     ports:
       - "26257:26257"
       - "9000:8080"
-    # volumes:
-    #   - ./databases/cockroach/.data/roach-one:/cockroach/data
 
   db.cockroach.init:
     image: cockroachdb/cockroach:v19.1.4
