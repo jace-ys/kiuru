@@ -1,9 +1,6 @@
-on:
-  push:
-    paths:
-      - ./api/**
-      - ./bin/**
-      - ./backend/service.auth/**
+name: service.user
+
+on: push
 
 jobs:
   build:

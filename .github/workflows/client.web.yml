@@ -1,9 +1,6 @@
-on:
-  push:
-    paths:
-      - ./api/**
-      - ./bin/**
-      - ./frontend/client.web/**
+name: client.web
+
+on: push
 
 jobs:
   build:

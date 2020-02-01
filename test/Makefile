@@ -15,7 +15,7 @@ setup:
 
 integration:
 	@echo "==> Running integration tests.."
-	go test ./integration -v
+	go test ./integration -v -count 1
 
 teardown:
 	@echo "==> Killing containers.."

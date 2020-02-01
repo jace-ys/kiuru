@@ -8,30 +8,38 @@ services:
       - "8000:80"
 
   service.auth:
-    build:
-      context: ./backend/service.auth
-      dockerfile: dev.Dockerfile
+    build: ./backend/service.auth
     image: kru-travel/service.auth:latest
-    environment:
-      CRDB_HOST: db.cockroach
-      CRDB_PORT: 26257
-      REDIS_HOST: db.redis
-      REDIS_PORT: 6379
     ports:
       - "8001:8081"
-
-  service.user:
-    build:
-      context: ./backend/service.user
-      dockerfile: dev.Dockerfile
-    image: kru-travel/service.user:latest
     environment:
+      PORT: 8080
+      GATEWAY_PORT: 8081
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
+      CRDB_USER: kru_service
+      CRDB_DBNAME: kru
       REDIS_HOST: db.redis
       REDIS_PORT: 6379
+      JWT_SECRET: my-secret-key
+      JWT_ISSUER: kru.service.auth
+      JWT_TTL: 15m
+
+  service.user:
+    build: ./backend/service.user
+    image: kru-travel/service.user:latest
     ports:
       - "8002:8081"
+    environment:
+      PORT: 8080
+      GATEWAY_PORT: 8081
+      CRDB_HOST: db.cockroach
+      CRDB_PORT: 26257
+      CRDB_USER: kru_service
+      CRDB_DBNAME: kru
+      REDIS_HOST: db.redis
+      REDIS_PORT: 6379
+      JWT_SECRET: my-secret-key
 
   db.cockroach:
     image: cockroachdb/cockroach:v19.1.4

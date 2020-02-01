@@ -1,13 +1,6 @@
-on:
-  push:
-    paths:
-      - /api/**
-      - /bin/**
-      - /frontend/**
-      - /backend/**
-      - /databases/**
-      - /test/**
-      - docker-compose.yml
+name: test.integration
+
+on: push
 
 jobs:
   build:
