@@ -39,7 +39,7 @@ docker-compose up -d db.cockroach db.cockroach.init db.redis
 
 ```
 * Go:
-  make
+  make run
 
 * Node:
   npm start

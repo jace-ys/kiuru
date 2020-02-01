@@ -7,24 +7,24 @@ import Base from "../components/Base";
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(16, 4, 8, 4),
+    padding: theme.spacing(4),
     display: "flex",
     flexDirection: "column"
   }
 }));
 
-const NotFound: React.FC = () => {
+const Discover: React.FC = () => {
   const classes = useStyles();
 
   return (
-    <Base app browser>
+    <Base app browser authenticated>
       <Grid container className={classes.root}>
         <Typography component="h1" variant="h4">
-          Not Found
+          Discover
         </Typography>
       </Grid>
     </Base>
   );
 };
 
-export default NotFound;
+export default Discover;

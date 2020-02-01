@@ -6,26 +6,18 @@ import { makeStyles } from "@material-ui/core/styles";
 const useStyles = makeStyles({
   root: {
     "& .MuiToolbar-root": {
-      justifyContent: "center",
-      "& .MuiTypography-h5": {
-        lineHeight: "60px",
-        fontWeight: 700
-      }
+      justifyContent: "center"
     }
   }
 });
 
-interface Props {
-  title: string;
-}
-
-const TopNav: React.FC<Props> = props => {
+const TopNav: React.FC = () => {
   const classes = useStyles();
 
   return (
-    <AppBar position="static" className={classes.root}>
+    <AppBar position="fixed" className={classes.root}>
       <Toolbar>
-        <Typography variant="h5">{props.title}</Typography>
+        <Typography variant="h6">Kru Travel</Typography>
       </Toolbar>
     </AppBar>
   );
