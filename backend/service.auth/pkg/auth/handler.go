@@ -9,12 +9,12 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/jmoiron/sqlx"
-	"github.com/kru-travel/airdrop-go/pkg/authr"
-	"github.com/kru-travel/airdrop-go/pkg/gorpc"
+	"github.com/kiuru-travel/airdrop-go/pkg/authr"
+	"github.com/kiuru-travel/airdrop-go/pkg/gorpc"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/jace-ys/kru-travel/backend/service.auth/api/auth"
+	pb "github.com/jace-ys/kiuru/backend/service.auth/api/auth"
 )
 
 func (s *authService) GenerateAuthToken(ctx context.Context, req *pb.GenerateAuthTokenRequest) (*pb.GenerateAuthTokenResponse, error) {

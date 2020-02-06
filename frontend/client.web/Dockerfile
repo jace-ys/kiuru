@@ -1,6 +1,6 @@
 FROM node:12.14 AS builder
 WORKDIR /usr/src/app
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
 RUN npm run build

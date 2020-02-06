@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/log"
-	"github.com/kru-travel/airdrop-go/pkg/crdb"
+	"github.com/kiuru-travel/airdrop-go/pkg/crdb"
 
-	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
+	pb "github.com/jace-ys/kiuru/backend/service.user/api/user"
 )
 
 var authenticatedMethods = map[string]bool{

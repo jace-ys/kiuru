@@ -8,13 +8,13 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/jmoiron/sqlx"
-	"github.com/kru-travel/airdrop-go/pkg/gorpc"
+	"github.com/kiuru-travel/airdrop-go/pkg/gorpc"
 	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
-	"github.com/jace-ys/kru-travel/backend/service.user/pkg/permissions"
+	pb "github.com/jace-ys/kiuru/backend/service.user/api/user"
+	"github.com/jace-ys/kiuru/backend/service.user/pkg/permissions"
 )
 
 func (s *userService) GetAllUsers(ctx context.Context, req *pb.GetAllUsersRequest) (*pb.GetAllUsersResponse, error) {

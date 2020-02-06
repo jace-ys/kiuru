@@ -1,13 +1,13 @@
 # dependencies
-node_modules
+node_modules/
 .pnp
 .pnp.js
 
 # production
-build
+build/
 
 # testing
-coverage
+coverage/
 
 # compiled binaries
 service

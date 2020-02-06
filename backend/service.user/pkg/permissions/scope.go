@@ -1,7 +1,7 @@
 package permissions
 
 import (
-	"github.com/kru-travel/airdrop-go/pkg/authr"
+	"github.com/kiuru-travel/airdrop-go/pkg/authr"
 )
 
 type ScopeFunc func(userMD *authr.UserMD, param interface{}) bool

@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/kru-travel/airdrop-go/pkg/gorpc"
+	"github.com/kiuru-travel/airdrop-go/pkg/gorpc"
 
 	"google.golang.org/grpc"
 
-	gw "github.com/jace-ys/kru-travel/backend/service.user/api/user"
+	gw "github.com/jace-ys/kiuru/backend/service.user/api/user"
 )
 
 type GatewayProxyConfig struct {

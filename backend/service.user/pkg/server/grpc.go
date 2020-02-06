@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/jace-ys/kru-travel/backend/service.user/api/user"
+	pb "github.com/jace-ys/kiuru/backend/service.user/api/user"
 )
 
 type GRPCServerConfig struct {

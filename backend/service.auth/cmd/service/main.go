@@ -8,14 +8,14 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kru-travel/airdrop-go/pkg/authr"
-	"github.com/kru-travel/airdrop-go/pkg/cache"
-	"github.com/kru-travel/airdrop-go/pkg/crdb"
-	"github.com/kru-travel/airdrop-go/pkg/redis"
+	"github.com/kiuru-travel/airdrop-go/pkg/authr"
+	"github.com/kiuru-travel/airdrop-go/pkg/cache"
+	"github.com/kiuru-travel/airdrop-go/pkg/crdb"
+	"github.com/kiuru-travel/airdrop-go/pkg/redis"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/jace-ys/kru-travel/backend/service.auth/pkg/auth"
-	"github.com/jace-ys/kru-travel/backend/service.auth/pkg/server"
+	"github.com/jace-ys/kiuru/backend/service.auth/pkg/auth"
+	"github.com/jace-ys/kiuru/backend/service.auth/pkg/server"
 )
 
 var logger log.Logger

@@ -35,7 +35,7 @@ const TopNav: React.FC = () => {
     <AppBar position="fixed" color="secondary">
       <Toolbar>
         <Link to="/" className={classes.icon}>
-          <img src={"./assets/icon.png"} alt="Kru" />
+          <img src={"./assets/icon.png"} alt="Kiuru Logo" />
         </Link>
         {!loggedIn && (
           <div className={classes.menu}>

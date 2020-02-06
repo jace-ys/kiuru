@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
     textAlign: "center",
     "& .MuiGrid-root": {
       margin: theme.spacing(4, 0),
-      height: "60%"
+      height: "50%"
     },
     "& .MuiButton-root": {
       margin: theme.spacing(1, 0),
@@ -37,7 +37,7 @@ const AppHome: React.FC = () => {
     <Grid container className={classes.app}>
       <Grid>
         <Typography variant="h4" color="primary">
-          Kru Travel
+          Kiuru
         </Typography>
         <Typography variant="subtitle1">Find your travel crew.</Typography>
       </Grid>

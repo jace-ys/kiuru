@@ -1,6 +1,6 @@
 {
   "name": "client.web",
-  "description": "Kru Travel",
+  "description": "Kiuru Travel",
   "version": "0.0.1",
   "private": true,
   "dependencies": {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/kru-travel/airdrop-go/pkg/gorpc"
+	"github.com/kiuru-travel/airdrop-go/pkg/gorpc"
 )
 
 func init() {

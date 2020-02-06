@@ -1,4 +1,4 @@
-module github.com/jace-ys/kru-travel/backend/service.user
+module github.com/jace-ys/kiuru/backend/service.user
 
 go 1.13
 
@@ -12,7 +12,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/grpc-ecosystem/grpc-gateway v1.12.2
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/kru-travel/airdrop-go v0.0.0-20200129222959-30190a9d80cf
+	github.com/kiuru-travel/airdrop-go v0.0.0-20200205234000-081d21038177
 	github.com/lib/pq v1.3.0
 	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e

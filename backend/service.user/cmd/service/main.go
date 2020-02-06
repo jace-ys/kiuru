@@ -9,16 +9,16 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/kru-travel/airdrop-go/pkg/authr"
-	"github.com/kru-travel/airdrop-go/pkg/cache"
-	"github.com/kru-travel/airdrop-go/pkg/crdb"
-	"github.com/kru-travel/airdrop-go/pkg/gorpc"
-	"github.com/kru-travel/airdrop-go/pkg/redis"
+	"github.com/kiuru-travel/airdrop-go/pkg/authr"
+	"github.com/kiuru-travel/airdrop-go/pkg/cache"
+	"github.com/kiuru-travel/airdrop-go/pkg/crdb"
+	"github.com/kiuru-travel/airdrop-go/pkg/gorpc"
+	"github.com/kiuru-travel/airdrop-go/pkg/redis"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	"github.com/jace-ys/kru-travel/backend/service.user/pkg/server"
-	"github.com/jace-ys/kru-travel/backend/service.user/pkg/user"
+	"github.com/jace-ys/kiuru/backend/service.user/pkg/server"
+	"github.com/jace-ys/kiuru/backend/service.user/pkg/user"
 )
 
 var logger log.Logger

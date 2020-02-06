@@ -3,13 +3,13 @@ version: "3.7"
 services:
   client.web:
     build: ./frontend/client.web
-    image: kru-travel/client.web:latest
+    image: kiuru/client.web:latest
     ports:
       - "8000:80"
 
   service.auth:
     build: ./backend/service.auth
-    image: kru-travel/service.auth:latest
+    image: kiuru/service.auth:latest
     ports:
       - "8001:8081"
     environment:
@@ -17,17 +17,17 @@ services:
       GATEWAY_PORT: 8081
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
-      CRDB_USER: kru_service
-      CRDB_DBNAME: kru
+      CRDB_USER: kiuru_service
+      CRDB_DBNAME: kiuru
       REDIS_HOST: db.redis
       REDIS_PORT: 6379
       JWT_SECRET: my-secret-key
-      JWT_ISSUER: kru.service.auth
+      JWT_ISSUER: kiuru.service.auth
       JWT_TTL: 15m
 
   service.user:
     build: ./backend/service.user
-    image: kru-travel/service.user:latest
+    image: kiuru/service.user:latest
     ports:
       - "8002:8081"
     environment:
@@ -35,8 +35,8 @@ services:
       GATEWAY_PORT: 8081
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
-      CRDB_USER: kru_service
-      CRDB_DBNAME: kru
+      CRDB_USER: kiuru_service
+      CRDB_DBNAME: kiuru
       REDIS_HOST: db.redis
       REDIS_PORT: 6379
       JWT_SECRET: my-secret-key

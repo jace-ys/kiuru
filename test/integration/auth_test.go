@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/jace-ys/kru-travel/test/api/auth"
+	"github.com/jace-ys/kiuru/test/api/auth"
 )
 
 func TestAuthService(t *testing.T) {
@@ -101,11 +101,9 @@ func TestAuthService(t *testing.T) {
 	})
 
 	t.Run("RevokeAuthToken", func(t *testing.T) {
-		var token string
-
 		t.Run("InvalidArgument", func(t *testing.T) {
 			req := &auth.RevokeAuthTokenRequest{
-				Token: token,
+				Token: "",
 			}
 
 			resp, err := service.RevokeAuthToken(ctx, req)
@@ -127,6 +125,9 @@ func TestAuthService(t *testing.T) {
 		})
 
 		t.Run("RefreshAuthToken/InvalidArgument", func(t *testing.T) {
+			token, err := generateToken(time.Minute, "userID", "username")
+			assert.NoError(t, err)
+
 			req := &auth.RefreshAuthTokenRequest{
 				Token: token,
 			}

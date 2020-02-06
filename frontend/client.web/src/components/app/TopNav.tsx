@@ -17,7 +17,7 @@ const TopNav: React.FC = () => {
   return (
     <AppBar position="fixed" className={classes.root}>
       <Toolbar>
-        <Typography variant="h6">Kru Travel</Typography>
+        <Typography variant="h6">Kiuru</Typography>
       </Toolbar>
     </AppBar>
   );

@@ -1,6 +1,6 @@
 {
-  "name": "Kru Travel",
-  "short_name": "Kru",
+  "name": "Kiuru",
+  "short_name": "Kiuru",
   "icons": [
     {
       "src": "assets/favicon.ico",
@@ -18,8 +18,8 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "/discover",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#7a81d9",
   "background_color": "#ffffff"
 }

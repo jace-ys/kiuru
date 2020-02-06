@@ -11,17 +11,17 @@ build:
 
 run:
 	@echo "==> Executing code.."
-	@go run main.go \
+	@go run cmd/service/main.go \
 	--port 8080 \
 	--gateway-port 8081 \
 	--crdb-host 127.0.0.1 \
 	--crdb-port 26257 \
-	--crdb-user kru_service \
-	--crdb-dbname kru \
+	--crdb-user kiuru_service \
+	--crdb-dbname kiuru \
 	--redis-host 127.0.0.1 \
 	--redis-port 6379 \
 	--jwt-secret my-secret-key \
-	--jwt-issuer kru.service.auth \
+	--jwt-issuer kiuru.service.auth \
 	--jwt-ttl 15m
 
 test:

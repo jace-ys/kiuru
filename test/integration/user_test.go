@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/jace-ys/kru-travel/test/api/user"
+	"github.com/jace-ys/kiuru/test/api/user"
 )
 
 func TestUserService(t *testing.T) {

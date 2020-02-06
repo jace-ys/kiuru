@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kru-travel/airdrop-go/pkg/authr"
+	"github.com/kiuru-travel/airdrop-go/pkg/authr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/jace-ys/kru-travel/test/api/auth"
-	"github.com/jace-ys/kru-travel/test/api/user"
+	"github.com/jace-ys/kiuru/test/api/auth"
+	"github.com/jace-ys/kiuru/test/api/user"
 )
 
 var (
