@@ -31,19 +31,19 @@ var (
 	}
 )
 
-func generateToken(ttl time.Duration, userID, username string) (string, error) {
+func GenerateToken(ttl time.Duration, userID, username string) (string, error) {
 	claims := authr.NewJWTClaims("issuer", ttl, userID, username)
 	return authr.GenerateToken(claims, "my-secret-key")
 }
 
-func withBearerAuthorization(ctx context.Context, token string) context.Context {
+func WithBearerAuthorization(ctx context.Context, token string) context.Context {
 	md := metadata.New(map[string]string{
 		"Authorization": fmt.Sprintf("Bearer %s", token),
 	})
 	return metadata.NewOutgoingContext(ctx, md)
 }
 
-func newAuthServiceClient(address string) (auth.AuthServiceClient, error) {
+func NewAuthServiceClient(address string) (auth.AuthServiceClient, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func newAuthServiceClient(address string) (auth.AuthServiceClient, error) {
 	return auth.NewAuthServiceClient(conn), nil
 }
 
-func newUserServiceClient(address string) (user.UserServiceClient, error) {
+func NewUserServiceClient(address string) (user.UserServiceClient, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		return nil, err

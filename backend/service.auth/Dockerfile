@@ -5,7 +5,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go install -a -installsuffix cgo ./cmd/service
 
-FROM alpine:3.10
+FROM alpine:3.11
 WORKDIR /src
 COPY --from=builder /src/start /bin/start
 COPY --from=builder /go/bin/service /bin/service

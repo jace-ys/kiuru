@@ -97,7 +97,7 @@ func (s *userService) getUser(ctx context.Context, userID string) (*pb.User, err
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, ErrUserNotFound
-		case errors.As(err, &pqErr) && pqErr.Code.Name() == "protocol_violation":
+		case errors.As(err, &pqErr) && pqErr.Code.Name() == "syntax_error":
 			return nil, ErrUserNotFound
 		default:
 			return nil, err
@@ -207,12 +207,9 @@ func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 	err = s.deleteUser(ctx, req.Id)
 	if err != nil {
 		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
-		var pqErr *pq.Error
 		switch {
 		case errors.Is(err, ErrUserNotFound):
 			return nil, gorpc.Error(codes.NotFound, err)
-		case errors.As(err, &pqErr) && pqErr.Code.Name() == "protocol_violation":
-			return nil, ErrUserNotFound
 		default:
 			return nil, gorpc.Error(codes.Internal, err)
 		}
@@ -255,8 +252,11 @@ func (s *userService) deleteUser(ctx context.Context, userID string) error {
 		return nil
 	})
 	if err != nil {
+		var pqErr *pq.Error
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
+			return ErrUserNotFound
+		case errors.As(err, &pqErr) && pqErr.Code.Name() == "syntax_error":
 			return ErrUserNotFound
 		default:
 			return err

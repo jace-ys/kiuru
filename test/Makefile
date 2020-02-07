@@ -1,39 +1,40 @@
 PROTO = v1/auth v1/user
 
-.PHONY: all setup integration teardown format update clean proto
+.PHONY: all integration setup teardown proto format clean
 
 all:
-	@make teardown 2>/dev/null
-	@make setup 2>/dev/null
+	@make teardown
+	@make setup
 	@echo "==> Initialising.."
 	@sleep 3
-	@make integration
+	go test -v ./integration
+
+integration:
+	@make teardown
+	@make setup
+	@echo "==> Running integration tests.."
+	go test -v ./integration -run ${SUITE}
+
+images:
+	@echo "==> Building images.."
+	docker-compose build
 
 setup:
 	@echo "==> Starting containers.."
 	docker-compose -f ../docker-compose.yml -f docker-compose.test.yml up -d
 
-integration:
-	@echo "==> Running integration tests.."
-	go test ./integration -v -count 1
-
 teardown:
 	@echo "==> Killing containers.."
 	docker-compose down -v
+
+proto:
+	@echo "==> Generating proto.."
+	../bin/proto-gen -l go -t "${PROTO}" -p ../api/proto
 
 format:
 	@echo "==> Formatting code.."
 	gofmt -w .
 
-update:
-	@echo "==> Updating dependencies.."
-	go get -u
-	go mod tidy
-
 clean:
 	@echo "==> Cleaning up.."
 	go clean
-
-proto:
-	@echo "==> Generating proto.."
-	../bin/proto-gen -l go -t "${PROTO}" -p ../api/proto

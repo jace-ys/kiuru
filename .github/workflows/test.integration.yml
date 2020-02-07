@@ -37,9 +37,12 @@ jobs:
           if [ -n "$(gofmt -l .)" ]; then
             exit 1
           fi
-      - name: Setup test environment
+      - name: Build images
         working-directory: ${{env.WORKDIR}}
-        run: make setup
-      - name: Run tests
+        run: make images
+      - name: Run service.auth test suite
         working-directory: ${{env.WORKDIR}}
-        run: make integration
+        run: make integration SUITE=TestAuthService
+      - name: Run service.user test suite
+        working-directory: ${{env.WORKDIR}}
+        run: make integration SUITE=TestUserService

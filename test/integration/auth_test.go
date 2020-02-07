@@ -16,7 +16,7 @@ func TestAuthService(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	service, err := newAuthServiceClient("127.0.0.1:5001")
+	service, err := NewAuthServiceClient("127.0.0.1:5001")
 	assert.NoError(t, err)
 
 	t.Run("GenerateAuthToken", func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestAuthService(t *testing.T) {
 		})
 
 		t.Run("ResourceExhausted", func(t *testing.T) {
-			token, err := generateToken(time.Minute, "userID", "username")
+			token, err := GenerateToken(time.Minute, "userID", "username")
 			assert.NoError(t, err)
 
 			req := &auth.RefreshAuthTokenRequest{
@@ -87,7 +87,7 @@ func TestAuthService(t *testing.T) {
 		})
 
 		t.Run("OK", func(t *testing.T) {
-			token, err := generateToken(time.Millisecond, "userID", "username")
+			token, err := GenerateToken(time.Millisecond, "userID", "username")
 			assert.NoError(t, err)
 
 			req := &auth.RefreshAuthTokenRequest{
@@ -112,7 +112,7 @@ func TestAuthService(t *testing.T) {
 		})
 
 		t.Run("OK", func(t *testing.T) {
-			token, err := generateToken(time.Minute, "userID", "username")
+			token, err := GenerateToken(time.Minute, "userID", "username")
 			assert.NoError(t, err)
 
 			req := &auth.RevokeAuthTokenRequest{
@@ -125,7 +125,7 @@ func TestAuthService(t *testing.T) {
 		})
 
 		t.Run("RefreshAuthToken/InvalidArgument", func(t *testing.T) {
-			token, err := generateToken(time.Minute, "userID", "username")
+			token, err := GenerateToken(time.Minute, "userID", "username")
 			assert.NoError(t, err)
 
 			req := &auth.RefreshAuthTokenRequest{

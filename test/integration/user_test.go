@@ -17,7 +17,7 @@ func TestUserService(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	service, err := newUserServiceClient("127.0.0.1:5002")
+	service, err := NewUserServiceClient("127.0.0.1:5002")
 	assert.NoError(t, err)
 
 	t.Run("GetAllUsers", func(t *testing.T) {
@@ -110,7 +110,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("DeleteUser", func(t *testing.T) {
 		t.Run("Unauthenticated", func(t *testing.T) {
-			ctx = withBearerAuthorization(ctx, "")
+			ctx = WithBearerAuthorization(ctx, "")
 			req := &user.DeleteUserRequest{
 				Id: UserOne.Id,
 			}
@@ -121,10 +121,10 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("PermissionDenied", func(t *testing.T) {
-			token, err := generateToken(time.Minute, UserOne.Id, UserOne.Username)
+			token, err := GenerateToken(time.Minute, UserOne.Id, UserOne.Username)
 			assert.NoError(t, err)
 
-			ctx = withBearerAuthorization(ctx, token)
+			ctx = WithBearerAuthorization(ctx, token)
 			req := &user.DeleteUserRequest{
 				Id: UserTwo.Id,
 			}
@@ -134,11 +134,25 @@ func TestUserService(t *testing.T) {
 			assert.Nil(t, resp, "Should return a nil response")
 		})
 
-		t.Run("OK", func(t *testing.T) {
-			token, err := generateToken(time.Minute, UserOne.Id, UserOne.Username)
+		t.Run("NotFound", func(t *testing.T) {
+			token, err := GenerateToken(time.Minute, "invalid", UserOne.Username)
 			assert.NoError(t, err)
 
-			ctx = withBearerAuthorization(ctx, token)
+			ctx = WithBearerAuthorization(ctx, token)
+			req := &user.DeleteUserRequest{
+				Id: "invalid",
+			}
+
+			resp, err := service.DeleteUser(ctx, req)
+			assert.Equal(t, codes.NotFound.String(), status.Code(err).String(), status.Convert(err).Message())
+			assert.Nil(t, resp, "Should return a nil response")
+		})
+
+		t.Run("OK", func(t *testing.T) {
+			token, err := GenerateToken(time.Minute, UserOne.Id, UserOne.Username)
+			assert.NoError(t, err)
+
+			ctx = WithBearerAuthorization(ctx, token)
 			req := &user.DeleteUserRequest{
 				Id: UserOne.Id,
 			}

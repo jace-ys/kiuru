@@ -1,17 +1,19 @@
 TARGET = service
-SOURCE = main.go
+SOURCE = cmd/service/main.go
 PROTO = v1/user
 DEPENDENCIES = db.cockroach db.cockroach.init db.redis
 
-.PHONY: all build run test format update clean proto dependencies
+.PHONY: all build run proto dependencies test format clean
+
+all: format build
 
 build:
-	@echo "==> Building from source.."
+	@echo "==> Compiling code.."
 	go build -o ${TARGET} ${SOURCE}
 
 run:
-	@echo "==> Executing binary.."
-	@go run cmd/service/main.go \
+	@echo "==> Executing code.."
+	@go run ${SOURCE} \
 	--port 8080 \
 	--gateway-port 8081 \
 	--crdb-host 127.0.0.1 \
@@ -22,23 +24,6 @@ run:
 	--redis-port 6379 \
 	--jwt-secret my-secret-key
 
-test:
-	@echo "==> Running tests.."
-	go test ./... -v
-
-format:
-	@echo "==> Formatting code.."
-	gofmt -w .
-
-update:
-	@echo "==> Updating dependencies.."
-	go get -u
-	go mod tidy
-
-clean:
-	@echo "==> Cleaning up.."
-	go clean
-
 proto:
 	@echo "==> Generating proto.."
 	../../bin/proto-gen -l go -t "${PROTO}" -p ../../api/proto -g
@@ -46,3 +31,15 @@ proto:
 dependencies:
 	@echo "==> Starting auxiliary containers.."
 	docker-compose up -d ${DEPENDENCIES}
+
+test:
+	@echo "==> Running tests.."
+	go test -v ./...
+
+format:
+	@echo "==> Formatting code.."
+	gofmt -w .
+
+clean:
+	@echo "==> Cleaning up.."
+	go clean
