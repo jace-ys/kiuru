@@ -35,8 +35,8 @@ github.com/grpc-ecosystem/grpc-gateway v1.12.2 h1:D0EVSTwQoQOyfY35QNSuPJA4jpZRtk
 github.com/grpc-ecosystem/grpc-gateway v1.12.2/go.mod h1:8XEsbTttt/W+VvjtQhLACqCisSPWTxCZ7sBRjU6iH9c=
 github.com/jmoiron/sqlx v1.2.0 h1:41Ip0zITnmWNR/vHV+S4m+VoUivnWY5E4OJfLZjCJMA=
 github.com/jmoiron/sqlx v1.2.0/go.mod h1:1FEQNm3xlJgrMD+FBdI9+xvCksHtbpVBBw5dYhBSsks=
-github.com/kiuru-travel/airdrop-go v0.0.0-20200205234000-081d21038177 h1:Wq5Xgjwt21kdAGUHQDQYWSONWvmSTe+9LCLAuFoPil8=
-github.com/kiuru-travel/airdrop-go v0.0.0-20200205234000-081d21038177/go.mod h1:UKE/NF4SAJIhN7cxFj11EcZJW4U+hotQLOnltxJw5jk=
+github.com/kiuru-travel/airdrop-go v0.0.0-20200209172743-1398db2ad9b8 h1:bN1ZvVQyUtIthisyyYG+LpzulImSSd+dGg5DBvayKdI=
+github.com/kiuru-travel/airdrop-go v0.0.0-20200209172743-1398db2ad9b8/go.mod h1:UKE/NF4SAJIhN7cxFj11EcZJW4U+hotQLOnltxJw5jk=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.2.0 h1:LXpIM/LZ5xGFhOpXAQUIMM1HdyqzVYM13zNdjCEEcA0=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=

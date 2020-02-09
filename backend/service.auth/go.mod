@@ -11,7 +11,7 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/grpc-ecosystem/grpc-gateway v1.12.2
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/kiuru-travel/airdrop-go v0.0.0-20200205234000-081d21038177
+	github.com/kiuru-travel/airdrop-go v0.0.0-20200209172743-1398db2ad9b8
 	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	google.golang.org/genproto v0.0.0-20200128133413-58ce757ed39b

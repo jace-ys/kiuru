@@ -29,11 +29,11 @@ func main() {
 	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "source", log.DefaultCaller)
 
-	crdbClient, err := crdb.NewCRDBClient(c.database.Host, c.database.Port, c.database.User, c.database.DBName)
+	crdbClient, err := crdb.NewCRDBClient(c.database.Host, c.database.User, c.database.DBName)
 	if err != nil {
 		exit(err)
 	}
-	redisClient, err := redis.NewRedisClient(c.redis.Host, c.redis.Port)
+	redisClient, err := redis.NewRedisClient(c.redis.Host)
 	if err != nil {
 		exit(err)
 	}
@@ -86,12 +86,10 @@ func parseCommand() *config {
 
 	kingpin.Flag("port", "port for the gRPC server").Default("8080").IntVar(&c.server.Port)
 	kingpin.Flag("gateway-port", "port for the REST gateway proxy").Default("8081").IntVar(&c.gateway.Port)
-	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1").StringVar(&c.database.Host)
-	kingpin.Flag("crdb-port", "port for connecting to CockroachDB").Default("26257").IntVar(&c.database.Port)
+	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1:26257").StringVar(&c.database.Host)
 	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").Default("default").StringVar(&c.database.User)
 	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").Default("defaultdb").StringVar(&c.database.DBName)
-	kingpin.Flag("redis-host", "host for connecting Redis").Default("127.0.0.1").StringVar(&c.redis.Host)
-	kingpin.Flag("redis-port", "port for connecting to Redis").Default("6379").IntVar(&c.redis.Port)
+	kingpin.Flag("redis-host", "host for connecting Redis").Default("127.0.0.1:6379").StringVar(&c.redis.Host)
 	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").Required().StringVar(&c.jwt.SecretKey)
 	kingpin.Flag("jwt-issuer", "issuer of generated JWTs").Default("").StringVar(&c.jwt.Issuer)
 	kingpin.Flag("jwt-ttl", "time-to-live for generated JWTs").Default("15m").DurationVar(&c.jwt.TTL)

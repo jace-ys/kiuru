@@ -34,12 +34,10 @@ services:
     environment:
       PORT: 8081
       GATEWAY_PORT: 8080
-      CRDB_HOST: db.cockroach
-      CRDB_PORT: 26257
+      CRDB_HOST: db.cockroach:26257
       CRDB_USER: kiuru_service
       CRDB_DBNAME: kiuru
-      REDIS_HOST: db.redis
-      REDIS_PORT: 6379
+      REDIS_HOST: db.redis:6379
       JWT_SECRET: my-secret-key
       JWT_ISSUER: kiuru.service.auth
       JWT_TTL: 15m
@@ -57,12 +55,10 @@ services:
     environment:
       PORT: 8081
       GATEWAY_PORT: 8080
-      CRDB_HOST: db.cockroach
-      CRDB_PORT: 26257
+      CRDB_HOST: db.cockroach:26257
       CRDB_USER: kiuru_service
       CRDB_DBNAME: kiuru
-      REDIS_HOST: db.redis
-      REDIS_PORT: 6379
+      REDIS_HOST: db.redis:6379
       JWT_SECRET: my-secret-key
 
   db.cockroach:

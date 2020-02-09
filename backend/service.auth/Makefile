@@ -16,12 +16,10 @@ run:
 	@go run ${SOURCE} \
 	--port 8081 \
 	--gateway-port 8080 \
-	--crdb-host 127.0.0.1 \
-	--crdb-port 26257 \
+	--crdb-host 127.0.0.1:26257 \
 	--crdb-user kiuru_service \
 	--crdb-dbname kiuru \
-	--redis-host 127.0.0.1 \
-	--redis-port 6379 \
+	--redis-host 127.0.0.1:6379 \
 	--jwt-secret my-secret-key \
 	--jwt-issuer kiuru.service.auth \
 	--jwt-ttl 15m
