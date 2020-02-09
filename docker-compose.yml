@@ -1,20 +1,39 @@
 version: "3.7"
 
 services:
+  service.api-gateway:
+    image: traefik:2.1
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./backend/service.api-gateway/traefik.yaml:/etc/traefik/traefik.yaml
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.kiuru.localhost`)
+      - traefik.http.routers.traefik.service=api@internal
+
   client.web:
     build: ./frontend/client.web
     image: kiuru/client.web:latest
-    ports:
-      - "8000:80"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.client-web.rule=Host(`kiuru.localhost`)
+      - traefik.http.services.client-web.loadbalancer.server.port=8080
 
   service.auth:
     build: ./backend/service.auth
     image: kiuru/service.auth:latest
-    ports:
-      - "8001:8081"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.service-auth.rule=Host(`api.kiuru.localhost`) && PathPrefix(`/auth`)
+      - traefik.http.routers.service-auth.middlewares=service-auth
+      - traefik.http.middlewares.service-auth.replacepathregex.regex=^/auth(.*)
+      - traefik.http.middlewares.service-auth.replacepathregex.replacement=/v1/auth$$1
+      - traefik.http.services.service-auth.loadbalancer.server.port=8080
     environment:
-      PORT: 8080
-      GATEWAY_PORT: 8081
+      PORT: 8081
+      GATEWAY_PORT: 8080
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
       CRDB_USER: kiuru_service
@@ -28,11 +47,16 @@ services:
   service.user:
     build: ./backend/service.user
     image: kiuru/service.user:latest
-    ports:
-      - "8002:8081"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.service-user.rule=Host(`api.kiuru.localhost`) && PathPrefix(`/users`)
+      - traefik.http.middlewares.service-user.replacepathregex.regex=^/users(.*)
+      - traefik.http.middlewares.service-user.replacepathregex.replacement=/v1/users$$1
+      - traefik.http.routers.service-user.middlewares=service-user
+      - traefik.http.services.service-user.loadbalancer.server.port=8080
     environment:
-      PORT: 8080
-      GATEWAY_PORT: 8081
+      PORT: 8081
+      GATEWAY_PORT: 8080
       CRDB_HOST: db.cockroach
       CRDB_PORT: 26257
       CRDB_USER: kiuru_service
@@ -43,10 +67,10 @@ services:
 
   db.cockroach:
     image: cockroachdb/cockroach:v19.2.3
-    command: start --insecure
+    command: start-single-node --insecure
     ports:
-      - "26257:26257"
-      - "9000:8080"
+      - 26257:26257
+      - 9000:8080
 
   db.cockroach.init:
     image: cockroachdb/cockroach:v19.2.3
@@ -58,4 +82,4 @@ services:
   db.redis:
     image: redis:5.0-alpine
     ports:
-      - "6379:6379"
+      - 6379:6379

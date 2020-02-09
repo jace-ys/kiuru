@@ -5,8 +5,6 @@ PROTO = v1/auth v1/user
 all:
 	@make teardown
 	@make setup
-	@echo "==> Initialising.."
-	@sleep 3
 	go test -v ./integration
 
 integration:
@@ -22,6 +20,8 @@ images:
 setup:
 	@echo "==> Starting containers.."
 	docker-compose -f ../docker-compose.yml -f docker-compose.test.yml up -d
+	@echo "==> Initializing.."
+	@sleep 3
 
 teardown:
 	@echo "==> Killing containers.."

@@ -7,7 +7,7 @@ import Base from "../components/Base";
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(16, 4, 8, 4),
+    padding: theme.spacing(4),
     display: "flex",
     flexDirection: "column"
   }

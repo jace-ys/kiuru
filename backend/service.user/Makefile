@@ -14,8 +14,8 @@ build:
 run:
 	@echo "==> Executing code.."
 	@go run ${SOURCE} \
-	--port 8080 \
-	--gateway-port 8081 \
+	--port 8081 \
+	--gateway-port 8080 \
 	--crdb-host 127.0.0.1 \
 	--crdb-port 26257 \
 	--crdb-user kiuru_service \

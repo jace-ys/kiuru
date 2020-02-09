@@ -7,53 +7,10 @@
 
 ## Prerequisites
 
-#### Dependencies:
-
-- docker, docker-compose
 - golang
 - node, npm
+- docker, docker-compose
 - protoc, protoc-gen-go, protoc-gen-grpc-gateway
-
-#### Development Setup:
-
-- Generate gRPC stubs from proto files
-
-```
-* Go:
-  make proto
-```
-
-- Start all containers
-
-```
-docker-compose up
-```
-
-- Start auxiliary containers
-
-```
-docker-compose up -d db.cockroach db.cockroach.init db.redis
-```
-
-- Start individual services
-
-```
-* Go:
-  make run
-
-* Node:
-  npm start
-```
-
-- Test individual services
-
-```
-* Go:
-  make test
-
-* Node:
-  npm test
-```
 
 [client.web-badge]: https://github.com/jace-ys/kiuru/workflows/client.web/badge.svg
 [client.web-workflow]: https://github.com/jace-ys/kiuru/actions?query=workflow%3Atest.integration

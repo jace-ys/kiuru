@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
-HOST=$1
-
 echo "> Connecting to cluster"
-until /cockroach/cockroach init --insecure --host=$HOST 2>&1 >/dev/null | grep -q "cluster has already been initialized"; do sleep 1; done
+until /cockroach/cockroach init --insecure --host=$1 2>&1 >/dev/null | grep -q "cluster has already been initialized"; do sleep 1; done
 
-echo "> Initialising database"
-/cockroach/cockroach sql --insecure --host=$HOST < /cockroach/init/init.sql
+echo "> Initializing database"
+/cockroach/cockroach sql --insecure --host=$1 < /cockroach/init/init.sql
 
 echo "> Seeding database"
-/cockroach/cockroach sql --insecure --host=$HOST < /cockroach/init/seed.sql
+/cockroach/cockroach sql --insecure --host=$1 < /cockroach/init/seed.sql
