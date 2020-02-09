@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Button, Toolbar, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
+import logo from "../../assets/logo.png";
+
 import { RootState } from "../../store";
 import { logout } from "../../store/ducks/auth";
 
@@ -35,7 +37,7 @@ const TopNav: React.FC = () => {
     <AppBar position="fixed" color="secondary">
       <Toolbar>
         <Link to="/" className={classes.icon}>
-          <img src={"/assets/icon.png"} alt="Kiuru Logo" />
+          <img src={logo} alt="Kiuru Logo" />
         </Link>
         {!loggedIn && (
           <div className={classes.menu}>

@@ -71,7 +71,7 @@ const BrowserHome: React.FC = () => {
   return (
     <Grid container className={classes.browser}>
       <Typography component="h1" variant="h4">
-        BrowserHome
+        Kiuru
       </Typography>
     </Grid>
   );

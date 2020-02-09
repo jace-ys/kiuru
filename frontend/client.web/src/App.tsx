@@ -48,6 +48,12 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
+        <Route
+          component={() => {
+            window.scrollTo(0, 0);
+            return null;
+          }}
+        />
         <Switch>
           <Route path="/" exact component={Home}></Route>
           <Route path="/signup" exact component={Signup}></Route>
