@@ -1,7 +1,7 @@
-[![client.web][client.web-badge]][client.web-workflow]
-[![service.auth][service.auth-badge]][service.auth-workflow]
-[![service.user][service.user-badge]][service.user-workflow]
-[![test.integration][test.integration-badge]][test.integration-workflow]
+[![client.web-badge]][client.web-workflow]
+[![service.auth-badge]][service.auth-workflow]
+[![service.user-badge]][service.user-workflow]
+[![test.integration-badge]][test.integration-workflow]
 
 # Kiuru
 

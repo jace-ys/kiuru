@@ -15,8 +15,8 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
     height: "75px",
     "& img": {
-      height: "40px",
-      margin: "17.5px"
+      height: "50px",
+      margin: "12.5px"
     }
   },
   menu: {
