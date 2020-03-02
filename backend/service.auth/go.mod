@@ -1,6 +1,6 @@
 module github.com/jace-ys/kiuru/backend/service.auth
 
-go 1.13
+go 1.14
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible

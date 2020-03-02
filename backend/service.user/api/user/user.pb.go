@@ -412,7 +412,9 @@ func init() {
 	proto.RegisterType((*DeleteUserResponse)(nil), "user.DeleteUserResponse")
 }
 
-func init() { proto.RegisterFile("user.proto", fileDescriptor_116e343673f7ffaf) }
+func init() {
+	proto.RegisterFile("user.proto", fileDescriptor_116e343673f7ffaf)
+}
 
 var fileDescriptor_116e343673f7ffaf = []byte{
 	// 413 bytes of a gzipped FileDescriptorProto

@@ -268,7 +268,9 @@ func init() {
 	proto.RegisterType((*RevokeAuthTokenResponse)(nil), "auth.RevokeAuthTokenResponse")
 }
 
-func init() { proto.RegisterFile("auth.proto", fileDescriptor_8bbd6f3875b0e874) }
+func init() {
+	proto.RegisterFile("auth.proto", fileDescriptor_8bbd6f3875b0e874)
+}
 
 var fileDescriptor_8bbd6f3875b0e874 = []byte{
 	// 315 bytes of a gzipped FileDescriptorProto
