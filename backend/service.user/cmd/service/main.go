@@ -8,7 +8,6 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/kiuru-travel/airdrop-go/pkg/authr"
 	"github.com/kiuru-travel/airdrop-go/pkg/cache"
 	"github.com/kiuru-travel/airdrop-go/pkg/crdb"
@@ -52,9 +51,11 @@ func main() {
 		userService.GetAuthenticatedMethods(),
 	)
 
-	grpcServer := server.NewGRPCServer(c.server.Port, grpc.UnaryInterceptor(middleware.ChainUnaryServer(
+	middleware := grpc.ChainUnaryInterceptor(
 		authInterceptor.Authenticate(),
-	)))
+	)
+
+	grpcServer := server.NewGRPCServer(c.server.Port, middleware)
 	gatewayProxy := server.NewGatewayProxy(c.gateway.Port, c.gateway.Endpoint)
 
 	g, ctx := errgroup.WithContext(ctx)
