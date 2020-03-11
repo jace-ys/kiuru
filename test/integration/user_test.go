@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/jace-ys/kiuru/test/api/auth"
 	"github.com/jace-ys/kiuru/test/api/user"
 )
 
@@ -17,14 +18,15 @@ func TestUserService(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	service, err := NewUserServiceClient("127.0.0.1:5002")
+	authService, err := NewAuthServiceClient("127.0.0.1:5001")
+	assert.NoError(t, err)
+	userService, err := NewUserServiceClient("127.0.0.1:5002")
 	assert.NoError(t, err)
 
 	t.Run("GetAllUsers", func(t *testing.T) {
 		t.Run("OK", func(t *testing.T) {
-			req := &user.GetAllUsersRequest{}
+			resp, err := userService.GetAllUsers(ctx, &user.GetAllUsersRequest{})
 
-			resp, err := service.GetAllUsers(ctx, req)
 			assert.Equal(t, codes.OK.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.NotNil(t, resp, "Should return a non-nil response")
 
@@ -34,21 +36,19 @@ func TestUserService(t *testing.T) {
 
 	t.Run("GetUser", func(t *testing.T) {
 		t.Run("NotFound", func(t *testing.T) {
-			req := &user.GetUserRequest{
+			resp, err := userService.GetUser(ctx, &user.GetUserRequest{
 				Id: "invalid",
-			}
+			})
 
-			resp, err := service.GetUser(ctx, req)
 			assert.Equal(t, codes.NotFound.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.Nil(t, resp, "Should return a nil response")
 		})
 
 		t.Run("OK", func(t *testing.T) {
-			req := &user.GetUserRequest{
+			resp, err := userService.GetUser(ctx, &user.GetUserRequest{
 				Id: UserOne.Id,
-			}
+			})
 
-			resp, err := service.GetUser(ctx, req)
 			assert.Equal(t, codes.OK.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.NotNil(t, resp, "Should return a non-nil response")
 
@@ -60,30 +60,28 @@ func TestUserService(t *testing.T) {
 
 	t.Run("CreateUser", func(t *testing.T) {
 		t.Run("InvalidArgument", func(t *testing.T) {
-			req := &user.CreateUserRequest{
+			resp, err := userService.CreateUser(ctx, &user.CreateUserRequest{
 				User: &user.User{
 					Username: "username",
 					Name:     "name",
 					Email:    "email",
 				},
-			}
+			})
 
-			resp, err := service.CreateUser(ctx, req)
 			assert.Equal(t, codes.InvalidArgument.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.Nil(t, resp, "Should return a nil response")
 		})
 
 		t.Run("OK", func(t *testing.T) {
-			req := &user.CreateUserRequest{
+			resp, err := userService.CreateUser(ctx, &user.CreateUserRequest{
 				User: &user.User{
 					Username: "username",
 					Password: "password",
 					Name:     "name",
 					Email:    "email",
 				},
-			}
+			})
 
-			resp, err := service.CreateUser(ctx, req)
 			assert.Equal(t, codes.OK.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.NotNil(t, resp, "Should return a non-nil response")
 
@@ -93,16 +91,15 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("AlreadyExists", func(t *testing.T) {
-			req := &user.CreateUserRequest{
+			resp, err := userService.CreateUser(ctx, &user.CreateUserRequest{
 				User: &user.User{
 					Username: UserOne.Username,
 					Password: UserOne.Password,
 					Name:     UserOne.Name,
 					Email:    UserOne.Email,
 				},
-			}
+			})
 
-			resp, err := service.CreateUser(ctx, req)
 			assert.Equal(t, codes.AlreadyExists.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.Nil(t, resp, "Should return a nil response")
 		})
@@ -111,11 +108,10 @@ func TestUserService(t *testing.T) {
 	t.Run("DeleteUser", func(t *testing.T) {
 		t.Run("Unauthenticated", func(t *testing.T) {
 			ctx = WithBearerAuthorization(ctx, "")
-			req := &user.DeleteUserRequest{
+			resp, err := userService.DeleteUser(ctx, &user.DeleteUserRequest{
 				Id: UserOne.Id,
-			}
+			})
 
-			resp, err := service.DeleteUser(ctx, req)
 			assert.Equal(t, codes.Unauthenticated.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.Nil(t, resp, "Should return a nil response")
 		})
@@ -125,11 +121,10 @@ func TestUserService(t *testing.T) {
 			assert.NoError(t, err)
 
 			ctx = WithBearerAuthorization(ctx, token)
-			req := &user.DeleteUserRequest{
+			resp, err := userService.DeleteUser(ctx, &user.DeleteUserRequest{
 				Id: UserTwo.Id,
-			}
+			})
 
-			resp, err := service.DeleteUser(ctx, req)
 			assert.Equal(t, codes.PermissionDenied.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.Nil(t, resp, "Should return a nil response")
 		})
@@ -139,11 +134,10 @@ func TestUserService(t *testing.T) {
 			assert.NoError(t, err)
 
 			ctx = WithBearerAuthorization(ctx, token)
-			req := &user.DeleteUserRequest{
+			resp, err := userService.DeleteUser(ctx, &user.DeleteUserRequest{
 				Id: "invalid",
-			}
+			})
 
-			resp, err := service.DeleteUser(ctx, req)
 			assert.Equal(t, codes.NotFound.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.Nil(t, resp, "Should return a nil response")
 		})
@@ -153,13 +147,30 @@ func TestUserService(t *testing.T) {
 			assert.NoError(t, err)
 
 			ctx = WithBearerAuthorization(ctx, token)
-			req := &user.DeleteUserRequest{
+			resp, err := userService.DeleteUser(ctx, &user.DeleteUserRequest{
 				Id: UserOne.Id,
-			}
+			})
 
-			resp, err := service.DeleteUser(ctx, req)
 			assert.Equal(t, codes.OK.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.NotNil(t, resp, "Should return a non-nil response")
+		})
+
+		t.Run("Unauthenticated/Revoked", func(t *testing.T) {
+			token, err := GenerateToken(time.Minute, UserOne.Id, UserOne.Username)
+			assert.NoError(t, err)
+
+			_, err = authService.RevokeAuthToken(ctx, &auth.RevokeAuthTokenRequest{
+				Token: token,
+			})
+			assert.NoError(t, err)
+
+			ctx = WithBearerAuthorization(ctx, token)
+			resp, err := userService.DeleteUser(ctx, &user.DeleteUserRequest{
+				Id: UserOne.Id,
+			})
+
+			assert.Equal(t, codes.Unauthenticated.String(), status.Code(err).String(), status.Convert(err).Message())
+			assert.Nil(t, resp, "Should return a nil response")
 		})
 	})
 }

@@ -1,6 +1,14 @@
 version: "3.7"
 
 services:
+  client.web:
+    build: ./frontend/client.web
+    image: kiuru/client.web:latest
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.client-web.rule=Host(`kiuru.localhost`)
+      - traefik.http.services.client-web.loadbalancer.server.port=8080
+
   service.api-gateway:
     image: traefik:2.1
     ports:
@@ -12,14 +20,6 @@ services:
       - traefik.enable=true
       - traefik.http.routers.traefik.rule=Host(`traefik.kiuru.localhost`)
       - traefik.http.routers.traefik.service=api@internal
-
-  client.web:
-    build: ./frontend/client.web
-    image: kiuru/client.web:latest
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.client-web.rule=Host(`kiuru.localhost`)
-      - traefik.http.services.client-web.loadbalancer.server.port=8080
 
   service.auth:
     build: ./backend/service.auth

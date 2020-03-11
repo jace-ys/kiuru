@@ -5,7 +5,7 @@ DEPENDENCIES = db.cockroach db.cockroach.init db.redis
 
 .PHONY: all build run proto dependencies test format clean
 
-all: format build
+all: format run
 
 build:
 	@echo "==> Compiling code.."
@@ -14,15 +14,15 @@ build:
 run:
 	@echo "==> Executing code.."
 	@go run ${SOURCE} \
-	--port 8081 \
-	--gateway-port 8080 \
-	--crdb-host 127.0.0.1:26257 \
-	--crdb-user kiuru_service \
-	--crdb-dbname kiuru \
-	--redis-host 127.0.0.1:6379 \
-	--jwt-secret my-secret-key \
-	--jwt-issuer kiuru.service.auth \
-	--jwt-ttl 15m
+		--port 8081 \
+		--gateway-port 8080 \
+		--crdb-host 127.0.0.1:26257 \
+		--crdb-user kiuru_service \
+		--crdb-dbname kiuru \
+		--redis-host 127.0.0.1:6379 \
+		--jwt-secret my-secret-key \
+		--jwt-issuer kiuru.service.auth \
+		--jwt-ttl 15m
 
 proto:
 	@echo "==> Generating proto.."

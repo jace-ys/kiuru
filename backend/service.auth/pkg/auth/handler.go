@@ -116,6 +116,8 @@ func (s *authService) RefreshAuthToken(ctx context.Context, req *pb.RefreshAuthT
 		switch {
 		case errors.Is(err, authr.ErrTokenInvalid):
 			return nil, gorpc.Error(codes.InvalidArgument, err)
+		case errors.Is(err, authr.ErrTokenRevoked):
+			return nil, gorpc.Error(codes.Unauthenticated, err)
 		default:
 			return nil, gorpc.Error(codes.Internal, err)
 		}
