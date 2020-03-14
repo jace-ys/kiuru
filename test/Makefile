@@ -19,7 +19,7 @@ images:
 
 setup:
 	@echo "==> Starting containers.."
-	docker-compose -f ../docker-compose.yml -f docker-compose.test.yml up -d
+	docker-compose -f ../docker-compose.yaml -f docker-compose.test.yaml up -d
 	@echo "==> Initializing.."
 	@sleep 3
 
@@ -29,7 +29,7 @@ teardown:
 
 proto:
 	@echo "==> Generating proto.."
-	../bin/proto-gen -l go -t "${PROTO}" -p ../api/proto
+	../bin/protogen -t "${PROTO}" -p ../api/proto
 
 format:
 	@echo "==> Formatting code.."

@@ -24,7 +24,7 @@ run:
 
 proto:
 	@echo "==> Generating proto.."
-	../../bin/proto-gen -l go -t "${PROTO}" -p ../../api/proto -g
+	../../bin/protogen -t "${PROTO}" -p ../../api/proto -g
 
 dependencies:
 	@echo "==> Starting auxiliary containers.."

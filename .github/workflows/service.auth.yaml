@@ -1,4 +1,4 @@
-name: service.user
+name: service.auth
 
 on: push
 
@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      WORKDIR: ./backend/service.user
+      WORKDIR: ./backend/service.auth
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v1
@@ -15,11 +15,11 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-service.user-${{ hashFiles('backend/service.user/go.sum') }}
+          key: ${{ runner.os }}-service.auth-${{ hashFiles('backend/service.auth/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-service.user-
+            ${{ runner.os }}-service.auth-
       - name: Install protoc
-        run: ./bin/proto-install protoc go
+        run: ./bin/protoinstall protoc go
       - name: Verify proto
         working-directory: ${{env.WORKDIR}}
         run: |

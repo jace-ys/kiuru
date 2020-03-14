@@ -1,4 +1,4 @@
-name: service.auth
+name: test.integration
 
 on: push
 
@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      WORKDIR: ./backend/service.auth
+      WORKDIR: ./test
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v1
@@ -15,11 +15,11 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-service.auth-${{ hashFiles('backend/service.auth/go.sum') }}
+          key: ${{ runner.os }}-test.integration-${{ hashFiles('test/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-service.auth-
+            ${{ runner.os }}-test.integration-
       - name: Install protoc
-        run: ./bin/proto-install protoc go
+        run: ./bin/protoinstall protoc go
       - name: Verify proto
         working-directory: ${{env.WORKDIR}}
         run: |
@@ -37,6 +37,12 @@ jobs:
           if [ -n "$(gofmt -l .)" ]; then
             exit 1
           fi
-      - name: Run tests
+      - name: Build images
         working-directory: ${{env.WORKDIR}}
-        run: make test
+        run: make images
+      - name: Run service.auth test suite
+        working-directory: ${{env.WORKDIR}}
+        run: make integration SUITE=TestAuthService
+      - name: Run service.user test suite
+        working-directory: ${{env.WORKDIR}}
+        run: make integration SUITE=TestUserService
