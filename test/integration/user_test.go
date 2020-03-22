@@ -23,9 +23,9 @@ func TestUserService(t *testing.T) {
 	userService, err := NewUserServiceClient("127.0.0.1:5002")
 	assert.NoError(t, err)
 
-	t.Run("GetAllUsers", func(t *testing.T) {
+	t.Run("ListUsers", func(t *testing.T) {
 		t.Run("OK", func(t *testing.T) {
-			resp, err := userService.GetAllUsers(ctx, &user.GetAllUsersRequest{})
+			resp, err := userService.ListUsers(ctx, &user.ListUsersRequest{})
 
 			assert.Equal(t, codes.OK.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.NotNil(t, resp, "Should return a non-nil response")
@@ -159,7 +159,7 @@ func TestUserService(t *testing.T) {
 			token, err := GenerateToken(time.Minute, UserOne.Id, UserOne.Username)
 			assert.NoError(t, err)
 
-			_, err = authService.RevokeAuthToken(ctx, &auth.RevokeAuthTokenRequest{
+			_, err = authService.RevokeToken(ctx, &auth.RevokeTokenRequest{
 				Token: token,
 			})
 			assert.NoError(t, err)

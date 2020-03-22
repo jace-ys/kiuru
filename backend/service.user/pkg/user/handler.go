@@ -8,32 +8,33 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/jmoiron/sqlx"
-	"github.com/kiuru-travel/airdrop-go/pkg/gorpc"
+	"github.com/kiuru-travel/airdrop-go/gorpc"
 	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 
-	pb "github.com/jace-ys/kiuru/backend/service.user/api/user"
 	"github.com/jace-ys/kiuru/backend/service.user/pkg/permissions"
+
+	pb "github.com/jace-ys/kiuru/backend/service.user/api/user"
 )
 
-func (s *userService) GetAllUsers(ctx context.Context, req *pb.GetAllUsersRequest) (*pb.GetAllUsersResponse, error) {
-	level.Info(s.logger).Log("event", "get_all_users.started")
-	defer level.Info(s.logger).Log("event", "get_all_users.finished")
+func (s *UserService) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
+	level.Info(s.logger).Log("event", "list_users.started")
+	defer level.Info(s.logger).Log("event", "list_users.finished")
 
-	users, err := s.getAllUsers(ctx)
+	users, err := s.listUsers(ctx)
 	if err != nil {
-		level.Error(s.logger).Log("event", "get_all_users.failed", "msg", err)
+		level.Error(s.logger).Log("event", "list_users.failure", "msg", err)
 		return nil, gorpc.Error(codes.Internal, err)
 	}
 
-	level.Info(s.logger).Log("event", "get_all_users.success")
-	return &pb.GetAllUsersResponse{
+	level.Info(s.logger).Log("event", "list_users.success")
+	return &pb.ListUsersResponse{
 		Users: users,
 	}, nil
 }
 
-func (s *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
+func (s *UserService) listUsers(ctx context.Context) ([]*pb.User, error) {
 	var users []*pb.User
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
@@ -60,13 +61,13 @@ func (s *userService) getAllUsers(ctx context.Context) ([]*pb.User, error) {
 	return users, nil
 }
 
-func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
+func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
 	level.Info(s.logger).Log("event", "get_user.started")
 	defer level.Info(s.logger).Log("event", "get_user.finished")
 
 	user, err := s.getUser(ctx, req.Id)
 	if err != nil {
-		level.Error(s.logger).Log("event", "get_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "get_user.failure", "msg", err)
 		switch {
 		case errors.Is(err, ErrUserNotFound):
 			return nil, gorpc.Error(codes.NotFound, err)
@@ -81,7 +82,7 @@ func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 	}, nil
 }
 
-func (s *userService) getUser(ctx context.Context, userID string) (*pb.User, error) {
+func (s *UserService) getUser(ctx context.Context, userID string) (*pb.User, error) {
 	var user pb.User
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
@@ -106,25 +107,25 @@ func (s *userService) getUser(ctx context.Context, userID string) (*pb.User, err
 	return &user, nil
 }
 
-func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	level.Info(s.logger).Log("event", "create_user.started")
 	defer level.Info(s.logger).Log("event", "create_user.finished")
 
 	err := s.validateUserPayload(req.User)
 	if err != nil {
-		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "create_user.failure", "msg", err)
 		return nil, gorpc.Error(codes.InvalidArgument, err)
 	}
 
 	err = s.hashPassword(req.User)
 	if err != nil {
-		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "create_user.failure", "msg", err)
 		return nil, gorpc.Error(codes.Internal, err)
 	}
 
 	userID, err := s.createUser(ctx, req.User)
 	if err != nil {
-		level.Error(s.logger).Log("event", "create_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "create_user.failure", "msg", err)
 		switch {
 		case errors.Is(err, ErrUserExists):
 			return nil, gorpc.Error(codes.AlreadyExists, err)
@@ -139,21 +140,21 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	}, nil
 }
 
-func (s *userService) validateUserPayload(user *pb.User) error {
+func (s *UserService) validateUserPayload(user *pb.User) error {
 	switch {
 	case user.Username == "":
-		return fmt.Errorf("missing \"username\" in payload")
+		return fmt.Errorf("invalid username")
 	case user.Password == "":
-		return fmt.Errorf("missing \"password\" in payload")
+		return fmt.Errorf("invalid password")
 	case user.Name == "":
-		return fmt.Errorf("missing \"name\" in payload")
+		return fmt.Errorf("invalid name")
 	case user.Email == "":
-		return fmt.Errorf("missing \"email\" in payload")
+		return fmt.Errorf("invalid email")
 	}
 	return nil
 }
 
-func (s *userService) hashPassword(user *pb.User) error {
+func (s *UserService) hashPassword(user *pb.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -163,7 +164,7 @@ func (s *userService) hashPassword(user *pb.User) error {
 	return nil
 }
 
-func (s *userService) createUser(ctx context.Context, user *pb.User) (string, error) {
+func (s *UserService) createUser(ctx context.Context, user *pb.User) (string, error) {
 	var userID string
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
@@ -189,13 +190,13 @@ func (s *userService) createUser(ctx context.Context, user *pb.User) (string, er
 	return userID, nil
 }
 
-func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
 	level.Info(s.logger).Log("event", "delete_user.started")
 	defer level.Info(s.logger).Log("event", "delete_user.finished")
 
 	err := s.verifyPermissions(ctx, permissions.UserScope, req.Id)
 	if err != nil {
-		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "delete_user.failure", "msg", err)
 		switch {
 		case errors.Is(err, ErrPermissionDenied):
 			return nil, gorpc.Error(codes.PermissionDenied, err)
@@ -206,7 +207,7 @@ func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 
 	err = s.deleteUser(ctx, req.Id)
 	if err != nil {
-		level.Error(s.logger).Log("event", "delete_user.failed", "msg", err)
+		level.Error(s.logger).Log("event", "delete_user.failure", "msg", err)
 		switch {
 		case errors.Is(err, ErrUserNotFound):
 			return nil, gorpc.Error(codes.NotFound, err)
@@ -219,8 +220,8 @@ func (s *userService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest)
 	return &pb.DeleteUserResponse{}, nil
 }
 
-func (s *userService) verifyPermissions(ctx context.Context, scopeFunc permissions.ScopeFunc, userID string) error {
-	userMD, err := gorpc.GetUserMD(ctx)
+func (s *UserService) verifyPermissions(ctx context.Context, scopeFunc permissions.ScopeFunc, userID string) error {
+	userMD, err := gorpc.GetUserMetadata(ctx)
 	if err != nil {
 		return err
 	}
@@ -232,7 +233,7 @@ func (s *userService) verifyPermissions(ctx context.Context, scopeFunc permissio
 	return nil
 }
 
-func (s *userService) deleteUser(ctx context.Context, userID string) error {
+func (s *UserService) deleteUser(ctx context.Context, userID string) error {
 	err := s.db.Transact(ctx, func(tx *sqlx.Tx) error {
 		query := `
 		DELETE FROM users

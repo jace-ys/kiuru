@@ -46,5 +46,6 @@
   },
   "devDependencies": {
     "serve": "^11.3.0"
-  }
+  },
+  "proxy": "http://localhost:80"
 }

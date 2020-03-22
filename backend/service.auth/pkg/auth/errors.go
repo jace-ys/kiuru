@@ -6,6 +6,6 @@ import (
 
 var (
 	ErrUserNotFound        = errors.New("user not found")
-	ErrIncorrectPassword   = errors.New("incorrect password")
+	ErrPasswordIncorrect   = errors.New("password incorrect")
 	ErrRefreshRateExceeded = errors.New("refresh rate exceeded")
 )

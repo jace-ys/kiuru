@@ -19,7 +19,7 @@ while getopts "p:t:g" OPT; do
   esac
 done
 
-if [ -z "$LANG" ] || [ -z "$PROTOPATH" ] || [ -z "$TARGETS" ]; then
+if [ -z "$PROTOPATH" ] || [ -z "$TARGETS" ]; then
   echo "Usage: protogen [-p] [path to proto folder] [-t] [space-separated targets] [-g]"
   exit 1
 fi

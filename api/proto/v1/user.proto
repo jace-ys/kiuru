@@ -5,7 +5,7 @@ package user;
 import "google/api/annotations.proto";
 
 service UserService {
-  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
     option (google.api.http) = {
       get: "/v1/users"
     };
@@ -40,9 +40,9 @@ message User {
   string email = 5;
 }
 
-message GetAllUsersRequest {}
+message ListUsersRequest {}
 
-message GetAllUsersResponse {
+message ListUsersResponse {
   repeated User users = 1;
 }
 

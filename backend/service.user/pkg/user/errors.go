@@ -10,7 +10,7 @@ import (
 
 var (
 	ErrUserNotFound     = errors.New("user not found")
-	ErrUserExists       = errors.New("account already exists")
+	ErrUserExists       = errors.New("user already exists")
 	ErrPermissionDenied = errors.New("permission denied")
 )
 
@@ -20,5 +20,5 @@ func ErrUserExistsContext(pqErr *pq.Error) error {
 	if len(match) != 2 {
 		return pqErr
 	}
-	return fmt.Errorf("%w: %s in use", ErrUserExists, match[1])
+	return fmt.Errorf("%s unavailable: %w", match[1], ErrUserExists)
 }

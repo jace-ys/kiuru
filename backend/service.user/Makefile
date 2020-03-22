@@ -3,7 +3,7 @@ SOURCE = cmd/service/main.go
 PROTO = v1/user
 DEPENDENCIES = db.cockroach db.cockroach.init db.redis
 
-.PHONY: all build run proto dependencies test format clean
+.PHONY: all build run proto dependencies test format
 
 all: format run
 
@@ -37,7 +37,3 @@ test:
 format:
 	@echo "==> Formatting code.."
 	gofmt -w .
-
-clean:
-	@echo "==> Cleaning up.."
-	go clean

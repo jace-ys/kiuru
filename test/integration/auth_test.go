@@ -19,16 +19,16 @@ func TestAuthService(t *testing.T) {
 	authService, err := NewAuthServiceClient("127.0.0.1:5001")
 	assert.NoError(t, err)
 
-	t.Run("GenerateAuthToken", func(t *testing.T) {
+	t.Run("GenerateToken", func(t *testing.T) {
 		t.Run("InvalidArgument", func(t *testing.T) {
-			resp, err := authService.GenerateAuthToken(ctx, &auth.GenerateAuthTokenRequest{})
+			resp, err := authService.GenerateToken(ctx, &auth.GenerateTokenRequest{})
 
 			assert.Equal(t, codes.InvalidArgument.String(), status.Code(err).String(), status.Convert(err).Message())
 			assert.Nil(t, resp, "Should return a nil response")
 		})
 
 		t.Run("NotFound", func(t *testing.T) {
-			resp, err := authService.GenerateAuthToken(ctx, &auth.GenerateAuthTokenRequest{
+			resp, err := authService.GenerateToken(ctx, &auth.GenerateTokenRequest{
 				Username: "invalid",
 				Password: "password",
 			})
@@ -38,7 +38,7 @@ func TestAuthService(t *testing.T) {
 		})
 
 		t.Run("Unauthenticated", func(t *testing.T) {
-			resp, err := authService.GenerateAuthToken(ctx, &auth.GenerateAuthTokenRequest{
+			resp, err := authService.GenerateToken(ctx, &auth.GenerateTokenRequest{
 				Username: UserOne.Username,
 				Password: "password",
 			})
@@ -48,7 +48,7 @@ func TestAuthService(t *testing.T) {
 		})
 
 		t.Run("OK", func(t *testing.T) {
-			resp, err := authService.GenerateAuthToken(ctx, &auth.GenerateAuthTokenRequest{
+			resp, err := authService.GenerateToken(ctx, &auth.GenerateTokenRequest{
 				Username: UserOne.Username,
 				Password: UserOne.Password,
 			})
@@ -58,9 +58,9 @@ func TestAuthService(t *testing.T) {
 		})
 	})
 
-	t.Run("RefreshAuthToken", func(t *testing.T) {
+	t.Run("RefreshToken", func(t *testing.T) {
 		t.Run("InvalidArgument", func(t *testing.T) {
-			resp, err := authService.RefreshAuthToken(ctx, &auth.RefreshAuthTokenRequest{
+			resp, err := authService.RefreshToken(ctx, &auth.RefreshTokenRequest{
 				Token: "",
 			})
 
@@ -72,7 +72,7 @@ func TestAuthService(t *testing.T) {
 			token, err := GenerateToken(time.Minute, "userID", "username")
 			assert.NoError(t, err)
 
-			resp, err := authService.RefreshAuthToken(ctx, &auth.RefreshAuthTokenRequest{
+			resp, err := authService.RefreshToken(ctx, &auth.RefreshTokenRequest{
 				Token: token,
 			})
 
@@ -84,7 +84,7 @@ func TestAuthService(t *testing.T) {
 			token, err := GenerateToken(time.Millisecond, "userID", "username")
 			assert.NoError(t, err)
 
-			resp, err := authService.RefreshAuthToken(ctx, &auth.RefreshAuthTokenRequest{
+			resp, err := authService.RefreshToken(ctx, &auth.RefreshTokenRequest{
 				Token: token,
 			})
 
@@ -93,9 +93,9 @@ func TestAuthService(t *testing.T) {
 		})
 	})
 
-	t.Run("RevokeAuthToken", func(t *testing.T) {
+	t.Run("RevokeToken", func(t *testing.T) {
 		t.Run("InvalidArgument", func(t *testing.T) {
-			resp, err := authService.RevokeAuthToken(ctx, &auth.RevokeAuthTokenRequest{
+			resp, err := authService.RevokeToken(ctx, &auth.RevokeTokenRequest{
 				Token: "",
 			})
 
@@ -107,7 +107,7 @@ func TestAuthService(t *testing.T) {
 			token, err := GenerateToken(time.Minute, "userID", "username")
 			assert.NoError(t, err)
 
-			resp, err := authService.RevokeAuthToken(ctx, &auth.RevokeAuthTokenRequest{
+			resp, err := authService.RevokeToken(ctx, &auth.RevokeTokenRequest{
 				Token: token,
 			})
 
@@ -115,11 +115,11 @@ func TestAuthService(t *testing.T) {
 			assert.NotNil(t, resp, "Should return a non-nil response")
 		})
 
-		t.Run("RefreshAuthToken/Unauthenticated", func(t *testing.T) {
+		t.Run("RefreshToken/Unauthenticated", func(t *testing.T) {
 			token, err := GenerateToken(time.Minute, "userID", "username")
 			assert.NoError(t, err)
 
-			resp, err := authService.RefreshAuthToken(ctx, &auth.RefreshAuthTokenRequest{
+			resp, err := authService.RefreshToken(ctx, &auth.RefreshTokenRequest{
 
 				Token: token,
 			})

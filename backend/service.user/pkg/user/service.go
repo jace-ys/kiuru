@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/log"
-	"github.com/kiuru-travel/airdrop-go/pkg/crdb"
+	"github.com/kiuru-travel/airdrop-go/crdb"
 
 	pb "github.com/jace-ys/kiuru/backend/service.user/api/user"
 )
 
 var authenticatedMethods = map[string]bool{
-	"/user.UserService/GetAllUsers": false,
-	"/user.UserService/GetUser":     false,
-	"/user.UserService/CreateUser":  false,
-	"/user.UserService/DeleteUser":  true,
+	"/user.UserService/ListUsers":  false,
+	"/user.UserService/GetUser":    false,
+	"/user.UserService/CreateUser": false,
+	"/user.UserService/DeleteUser": true,
 }
 
 type Server interface {
@@ -22,25 +22,25 @@ type Server interface {
 	Shutdown(ctx context.Context) error
 }
 
-type userService struct {
+type UserService struct {
 	authMethods map[string]bool
 	logger      log.Logger
 	db          crdb.Client
 }
 
-func NewService(logger log.Logger, dbClient crdb.Client) (*userService, error) {
-	return &userService{
+func NewService(logger log.Logger, dbClient crdb.Client) (*UserService, error) {
+	return &UserService{
 		authMethods: authenticatedMethods,
 		logger:      logger,
 		db:          dbClient,
 	}, nil
 }
 
-func (s *userService) GetAuthenticatedMethods() map[string]bool {
+func (s *UserService) GetAuthenticatedMethods() map[string]bool {
 	return s.authMethods
 }
 
-func (s *userService) StartServer(ctx context.Context, server Server) error {
+func (s *UserService) StartServer(ctx context.Context, server Server) error {
 	if err := server.Init(ctx, s); err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (s *userService) StartServer(ctx context.Context, server Server) error {
 	return nil
 }
 
-func (s *userService) Teardown() error {
+func (s *UserService) Teardown() error {
 	if err := s.db.Close(); err != nil {
 		return err
 	}

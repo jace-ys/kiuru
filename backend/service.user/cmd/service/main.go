@@ -8,11 +8,11 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/kiuru-travel/airdrop-go/pkg/authr"
-	"github.com/kiuru-travel/airdrop-go/pkg/cache"
-	"github.com/kiuru-travel/airdrop-go/pkg/crdb"
-	"github.com/kiuru-travel/airdrop-go/pkg/gorpc"
-	"github.com/kiuru-travel/airdrop-go/pkg/redis"
+	"github.com/kiuru-travel/airdrop-go/authr"
+	"github.com/kiuru-travel/airdrop-go/cache"
+	"github.com/kiuru-travel/airdrop-go/crdb"
+	"github.com/kiuru-travel/airdrop-go/gorpc"
+	"github.com/kiuru-travel/airdrop-go/redis"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -29,9 +29,9 @@ func main() {
 	defer cancel()
 
 	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "source", log.DefaultCaller)
+	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 
-	crdbClient, err := crdb.NewCRDBClient(c.database.Host, c.database.User, c.database.DBName)
+	crdbClient, err := crdb.NewCRDBClient(c.crdb.Host, c.crdb.User, c.crdb.DBName)
 	if err != nil {
 		exit(err)
 	}
@@ -50,13 +50,10 @@ func main() {
 		authr.NewJWTAuthenticator(c.jwtSecretKey, cache.NewRedisCache(redisClient)),
 		userService.GetAuthenticatedMethods(),
 	)
-
-	middleware := grpc.ChainUnaryInterceptor(
-		authInterceptor.Authenticate(),
-	)
+	middleware := grpc.ChainUnaryInterceptor(authInterceptor.Authenticate())
 
 	grpcServer := server.NewGRPCServer(c.server.Port, middleware)
-	gatewayProxy := server.NewGatewayProxy(c.gateway.Port, c.gateway.Endpoint)
+	gatewayProxy := server.NewGatewayProxy(c.proxy.Port, c.proxy.Endpoint)
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
@@ -65,7 +62,7 @@ func main() {
 		return userService.StartServer(ctx, grpcServer)
 	})
 	g.Go(func() error {
-		level.Info(logger).Log("event", "gateway_proxy.started", "port", c.gateway.Port)
+		level.Info(logger).Log("event", "gateway_proxy.started", "port", c.proxy.Port)
 		defer level.Info(logger).Log("event", "gateway_proxy.stopped")
 		return userService.StartServer(ctx, gatewayProxy)
 	})
@@ -85,8 +82,8 @@ func main() {
 
 type config struct {
 	server       server.GRPCServerConfig
-	gateway      server.GatewayProxyConfig
-	database     crdb.Config
+	proxy        server.GatewayProxyConfig
+	crdb         crdb.Config
 	redis        redis.Config
 	jwtSecretKey string
 }
@@ -94,16 +91,16 @@ type config struct {
 func parseCommand() *config {
 	var c config
 
-	kingpin.Flag("port", "port for the gRPC server").Default("8080").IntVar(&c.server.Port)
-	kingpin.Flag("gateway-port", "port for the REST gateway proxy").Default("8081").IntVar(&c.gateway.Port)
-	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1:26257").StringVar(&c.database.Host)
-	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").Default("default").StringVar(&c.database.User)
-	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").Default("defaultdb").StringVar(&c.database.DBName)
+	kingpin.Flag("port", "port for the gRPC server").Default("8081").IntVar(&c.server.Port)
+	kingpin.Flag("gateway-port", "port for the REST gateway proxy").Default("8080").IntVar(&c.proxy.Port)
+	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1:26257").StringVar(&c.crdb.Host)
+	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").Default("default").StringVar(&c.crdb.User)
+	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").Default("defaultdb").StringVar(&c.crdb.DBName)
 	kingpin.Flag("redis-host", "host for connecting Redis").Default("127.0.0.1:6379").StringVar(&c.redis.Host)
 	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").Required().StringVar(&c.jwtSecretKey)
 	kingpin.Parse()
 
-	c.gateway.Endpoint = fmt.Sprintf(":%d", c.server.Port)
+	c.proxy.Endpoint = fmt.Sprintf(":%d", c.server.Port)
 	return &c
 }
 

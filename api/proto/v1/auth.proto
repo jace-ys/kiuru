@@ -5,21 +5,21 @@ package auth;
 import "google/api/annotations.proto";
 
 service AuthService {
-  rpc GenerateAuthToken(GenerateAuthTokenRequest) returns (GenerateAuthTokenResponse) {
+  rpc GenerateToken(GenerateTokenRequest) returns (GenerateTokenResponse) {
     option (google.api.http) = {
       post: "/v1/auth/token"
       body: "*"
     };
   }
 
-  rpc RefreshAuthToken(RefreshAuthTokenRequest) returns (RefreshAuthTokenResponse) {
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
     option (google.api.http) = {
       post: "/v1/auth/token/refresh"
       body: "*"
     };
   }
 
-  rpc RevokeAuthToken(RevokeAuthTokenRequest) returns (RevokeAuthTokenResponse) {
+  rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse) {
     option (google.api.http) = {
       post: "/v1/auth/token/revoke"
       body: "*"
@@ -27,25 +27,25 @@ service AuthService {
   }
 }
 
-message GenerateAuthTokenRequest {
+message GenerateTokenRequest {
   string username = 1;
   string password = 2;
 }
 
-message GenerateAuthTokenResponse {
+message GenerateTokenResponse {
   string token = 1;
 }
 
-message RefreshAuthTokenRequest {
+message RefreshTokenRequest {
   string token = 1;
 }
 
-message RefreshAuthTokenResponse {
+message RefreshTokenResponse {
   string token = 1;
 }
 
-message RevokeAuthTokenRequest {
+message RevokeTokenRequest {
   string token = 1;
 }
 
-message RevokeAuthTokenResponse {}
+message RevokeTokenResponse {}

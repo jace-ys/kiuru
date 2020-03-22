@@ -9,4 +9,4 @@ exec service \
   --redis-host "$REDIS_HOST" \
   --jwt-secret "$JWT_SECRET" \
   --jwt-issuer "$JWT_ISSUER" \
-  --jwt-ttl "${JWT_TTL:-15m}"
+  --jwt-ttl "$JWT_TTL"

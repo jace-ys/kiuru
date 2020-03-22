@@ -1,15 +1,18 @@
 PROTO = v1/auth v1/user
 
-.PHONY: all integration setup teardown proto format clean
+.PHONY: all integration setup teardown proto format
 
 all:
 	@make teardown
 	@make setup
+	@echo "==> Initializing.." && sleep 3
+	@echo "==> Running integration tests.."
 	go test -v ./integration
 
 integration:
 	@make teardown
 	@make setup
+	@echo "==> Initializing.." && sleep 3
 	@echo "==> Running integration tests.."
 	go test -v ./integration -run ${SUITE}
 
@@ -20,8 +23,6 @@ images:
 setup:
 	@echo "==> Starting containers.."
 	docker-compose -f ../docker-compose.yaml -f docker-compose.test.yaml up -d
-	@echo "==> Initializing.."
-	@sleep 3
 
 teardown:
 	@echo "==> Killing containers.."
@@ -34,7 +35,3 @@ proto:
 format:
 	@echo "==> Formatting code.."
 	gofmt -w .
-
-clean:
-	@echo "==> Cleaning up.."
-	go clean

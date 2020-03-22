@@ -1,20 +1,20 @@
 package permissions
 
 import (
-	"github.com/kiuru-travel/airdrop-go/pkg/authr"
+	"github.com/kiuru-travel/airdrop-go/authr"
 )
 
-type ScopeFunc func(userMD *authr.UserMD, param interface{}) bool
+type ScopeFunc func(userMD *authr.UserMD, userID string) bool
 
-func AdminScope(userMD *authr.UserMD, param interface{}) bool {
+func AdminScope(userMD *authr.UserMD, userID string) bool {
 	return userMD.Admin
 }
 
-func UserScope(userMD *authr.UserMD, param interface{}) bool {
+func UserScope(userMD *authr.UserMD, userID string) bool {
 	switch {
 	case userMD.Admin:
 		return true
-	case userMD.Id == param:
+	case userMD.Id == userID:
 		return true
 	default:
 		return false

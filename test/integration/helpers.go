@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kiuru-travel/airdrop-go/pkg/authr"
+	"github.com/kiuru-travel/airdrop-go/authr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
@@ -31,18 +31,6 @@ var (
 	}
 )
 
-func GenerateToken(ttl time.Duration, userID, username string) (string, error) {
-	claims := authr.NewJWTClaims("issuer", ttl, userID, username)
-	return authr.GenerateToken(claims, "my-secret-key")
-}
-
-func WithBearerAuthorization(ctx context.Context, token string) context.Context {
-	md := metadata.New(map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", token),
-	})
-	return metadata.NewOutgoingContext(ctx, md)
-}
-
 func NewAuthServiceClient(address string) (auth.AuthServiceClient, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -57,4 +45,16 @@ func NewUserServiceClient(address string) (user.UserServiceClient, error) {
 		return nil, err
 	}
 	return user.NewUserServiceClient(conn), nil
+}
+
+func GenerateToken(ttl time.Duration, userID, username string) (string, error) {
+	claims := authr.NewJWTClaims("issuer", ttl, userID, username)
+	return authr.GenerateToken(claims, "my-secret-key")
+}
+
+func WithBearerAuthorization(ctx context.Context, token string) context.Context {
+	md := metadata.New(map[string]string{
+		"Authorization": fmt.Sprintf("Bearer %s", token),
+	})
+	return metadata.NewOutgoingContext(ctx, md)
 }

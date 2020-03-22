@@ -3,7 +3,7 @@ SOURCE = cmd/service/main.go
 PROTO = v1/auth
 DEPENDENCIES = db.cockroach db.cockroach.init db.redis
 
-.PHONY: all build run proto dependencies test format clean
+.PHONY: all build run proto dependencies test format
 
 all: format run
 
@@ -14,15 +14,15 @@ build:
 run:
 	@echo "==> Executing code.."
 	@go run ${SOURCE} \
-		--port 8081 \
-		--gateway-port 8080 \
-		--crdb-host 127.0.0.1:26257 \
-		--crdb-user kiuru_service \
-		--crdb-dbname kiuru \
-		--redis-host 127.0.0.1:6379 \
-		--jwt-secret my-secret-key \
-		--jwt-issuer kiuru.service.auth \
-		--jwt-ttl 15m
+	--port 8081 \
+	--gateway-port 8080 \
+	--crdb-host 127.0.0.1:26257 \
+	--crdb-user kiuru_service \
+	--crdb-dbname kiuru \
+	--redis-host 127.0.0.1:6379 \
+	--jwt-secret my-secret-key \
+	--jwt-issuer kiuru.service.auth \
+	--jwt-ttl 15m
 
 proto:
 	@echo "==> Generating proto.."
@@ -39,7 +39,3 @@ test:
 format:
 	@echo "==> Formatting code.."
 	gofmt -w .
-
-clean:
-	@echo "==> Cleaning up.."
-	go clean
