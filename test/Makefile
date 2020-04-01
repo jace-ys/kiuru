@@ -1,6 +1,6 @@
 PROTO = v1/auth v1/user
 
-.PHONY: all integration setup teardown proto format
+.PHONY: all integration setup teardown proto migrations format
 
 all:
 	@make teardown
@@ -31,6 +31,10 @@ teardown:
 proto:
 	@echo "==> Generating proto.."
 	../bin/protogen -t "${PROTO}" -p ../api/proto
+
+migrations:
+	@echo "==> Copying migrations.."
+	rsync -a --ignore-existing ../databases/cockroach/migrations/ data/cockroach/migrations/
 
 format:
 	@echo "==> Formatting code.."

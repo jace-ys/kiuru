@@ -32,8 +32,8 @@ services:
       PORT: 8081
       GATEWAY_PORT: 8080
       CRDB_HOST: db.cockroach:26257
-      CRDB_USER: kiuru_service
-      CRDB_DBNAME: kiuru
+      CRDB_USER: kiuru
+      CRDB_DATABASE: kiuru
       REDIS_HOST: db.redis:6379
       JWT_SECRET: my-secret-key
       JWT_ISSUER: kiuru.service.auth
@@ -53,24 +53,29 @@ services:
       PORT: 8081
       GATEWAY_PORT: 8080
       CRDB_HOST: db.cockroach:26257
-      CRDB_USER: kiuru_service
-      CRDB_DBNAME: kiuru
+      CRDB_USER: kiuru
+      CRDB_DATABASE: kiuru
       REDIS_HOST: db.redis:6379
       JWT_SECRET: my-secret-key
 
   db.cockroach:
-    image: cockroachdb/cockroach:v19.2.4
+    image: cockroachdb/cockroach:v19.2.5
     command: start-single-node --insecure
     ports:
       - 26257:26257
       - 9000:8080
 
   db.cockroach.init:
-    image: cockroachdb/cockroach:v19.2.4
-    entrypoint: /cockroach/init/init-db
-    command: db.cockroach:26257
+    image: migrate/migrate:v4.10.0
+    entrypoint:
+      - /cockroach/run-migrations.sh
+    depends_on:
+      - db.cockroach
+    environment:
+      CRDB_HOST: db.cockroach:26257
+      MIGRATIONS_DIR: /cockroach/migrations
     volumes:
-      - ./databases/cockroach/init:/cockroach/init
+      - ./databases/cockroach:/cockroach
 
   db.redis:
     image: redis:5.0-alpine

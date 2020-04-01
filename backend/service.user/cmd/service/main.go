@@ -31,7 +31,7 @@ func main() {
 	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 
-	crdbClient, err := crdb.NewCRDBClient(c.crdb.Host, c.crdb.User, c.crdb.DBName)
+	crdbClient, err := crdb.NewCRDBClient(c.crdb.Host, c.crdb.User, c.crdb.Database)
 	if err != nil {
 		exit(err)
 	}
@@ -95,7 +95,7 @@ func parseCommand() *config {
 	kingpin.Flag("gateway-port", "port for the REST gateway proxy").Default("8080").IntVar(&c.proxy.Port)
 	kingpin.Flag("crdb-host", "host for connecting to CockroachDB").Default("127.0.0.1:26257").StringVar(&c.crdb.Host)
 	kingpin.Flag("crdb-user", "user for connecting to CockroachDB").Default("default").StringVar(&c.crdb.User)
-	kingpin.Flag("crdb-dbname", "database name for connecting to CockroachDB").Default("defaultdb").StringVar(&c.crdb.DBName)
+	kingpin.Flag("crdb-database", "database name for connecting to CockroachDB").Default("defaultdb").StringVar(&c.crdb.Database)
 	kingpin.Flag("redis-host", "host for connecting Redis").Default("127.0.0.1:6379").StringVar(&c.redis.Host)
 	kingpin.Flag("jwt-secret", "secret key used to sign JWTs").Required().StringVar(&c.jwtSecretKey)
 	kingpin.Parse()

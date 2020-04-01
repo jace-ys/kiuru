@@ -9,6 +9,7 @@
 
 - golang
 - node, npm
+- [migrate](https://github.com/golang-migrate/migrate)
 - docker, docker-compose
 - protoc, protoc-gen-go, protoc-gen-grpc-gateway
 

@@ -17,8 +17,8 @@ run:
 	--port 8081 \
 	--gateway-port 8080 \
 	--crdb-host 127.0.0.1:26257 \
-	--crdb-user kiuru_service \
-	--crdb-dbname kiuru \
+	--crdb-user kiuru \
+	--crdb-database kiuru \
 	--redis-host 127.0.0.1:6379 \
 	--jwt-secret my-secret-key \
 	--jwt-issuer kiuru.service.auth \

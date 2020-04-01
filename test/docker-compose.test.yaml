@@ -11,4 +11,4 @@ services:
 
   db.cockroach.init:
     volumes:
-      - ./test/data/cockroach/seed.sql:/cockroach/init/seed.sql
+      - ./test/data/cockroach/migrations:/cockroach/migrations
