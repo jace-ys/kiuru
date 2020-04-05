@@ -5,10 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Button, Toolbar, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
-import logo from "../../assets/logo.png";
-
 import { RootState } from "../../store";
 import { logout } from "../../store/ducks/auth";
+
+import logo from "../../assets/images/logo.png";
 
 const useStyles = makeStyles(theme => ({
   icon: {

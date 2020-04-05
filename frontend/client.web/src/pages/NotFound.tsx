@@ -19,9 +19,7 @@ const NotFound: React.FC = () => {
   return (
     <Base app browser>
       <Grid container className={classes.root}>
-        <Typography component="h1" variant="h4">
-          Not Found
-        </Typography>
+        <Typography variant="h4">Not Found</Typography>
       </Grid>
     </Base>
   );

@@ -19,9 +19,7 @@ const Discover: React.FC = () => {
   return (
     <Base app browser authenticated>
       <Grid container className={classes.root}>
-        <Typography component="h1" variant="h4">
-          Discover
-        </Typography>
+        <Typography variant="h4">Discover</Typography>
       </Grid>
     </Base>
   );

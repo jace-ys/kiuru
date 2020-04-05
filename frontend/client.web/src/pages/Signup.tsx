@@ -4,32 +4,36 @@ import { useDispatch } from "react-redux";
 
 import { Avatar, Button, Grid, TextField, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { PersonAddOutlined } from "@material-ui/icons";
+import { PersonOutlined } from "@material-ui/icons";
 
 import Base from "../components/Base";
 
 import { login } from "../store/ducks/auth";
 
+import signup from "../assets/images/signup.jpg";
+
 const useStyles = makeStyles(theme => ({
   image: {
-    backgroundImage:
-      "url(https://images.squarespace-cdn.com/content/v1/587271d7ff7c50c708f3e44b/1568586724159-WH56CI2XN0M0FNCE93EC/ke17ZwdGBToddI8pDm48kJKo3YTR7zgUvInmXMbZ6zZ7gQa3H78H3Y0txjaiv_0fDoOvxcdMmMKkDsyUqMSsMWxHk725yiiHCCLfrh8O1z4YTzHvnKhyp6Da-NYroOW3ZGjoBKy3azqku80C789l0geeCvn1f36QDdcifB7yxGjTk-SMFplgtEhJ5kBshkhu5q5viBDDnY2i_eu2ZnquSA/_DSC6453.jpg)",
+    backgroundImage: `url(${signup})`,
     backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
     backgroundSize: "cover"
   },
   formPanel: {
     padding: theme.spacing(4),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center"
+    textAlign: "center"
   },
   avatar: {
     margin: theme.spacing(1),
+    marginLeft: "auto",
+    marginRight: "auto",
     backgroundColor: theme.palette.primary.main
   },
-  title: {
-    margin: theme.spacing(0.5)
+  text: {
+    margin: theme.spacing(0.5),
+    "& a": {
+      color: theme.palette.action.hover
+    }
   },
   submit: {
     margin: theme.spacing(3, 0, 2)
@@ -81,13 +85,13 @@ const Login: React.FC = () => {
         <Grid item xs={12} sm={6} md={5}>
           <div className={classes.formPanel}>
             <Avatar className={classes.avatar}>
-              <PersonAddOutlined />
+              <PersonOutlined />
             </Avatar>
-            <Typography component="h1" variant="h4" className={classes.title}>
+            <Typography variant="h4" className={classes.text}>
               Sign up
-            </Typography>
-            <Typography component="h1" variant="body1">
-              Already have an account? <Link to="/login">Log in</Link>
+              <Typography variant="body1">
+                Already have an account? <Link to="/login">Log in</Link>
+              </Typography>
             </Typography>
             <form noValidate>
               {fields.map((field, index) => {

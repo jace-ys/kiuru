@@ -26,6 +26,9 @@ const theme = createMuiTheme({
     text: {
       primary: "#484848",
       secondary: "#484848"
+    },
+    action: {
+      hover: "#4146c7"
     }
   },
   typography: {
